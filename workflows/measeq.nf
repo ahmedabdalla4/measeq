@@ -186,7 +186,8 @@ workflow MEASEQ {
             .join(NEXTCLADE_RUN_CUSTOM.out.csv, by: [0])
             .join(ch_vcf, by: [0])
             .join(ch_read_json, by: [0])
-            .join(ch_dsid_tsv, by: [0]),
+            .join(ch_dsid_tsv, by: [0])
+            .join(ADJUST_FASTA_HEADER.out.consensus, by: [0]),
         ch_genotype,
         ch_primer_bed.collect().ifEmpty([])
     )

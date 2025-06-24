@@ -126,12 +126,51 @@ add_pass_value_int <- function(df, column) {
 }
 
 # Create a simplified and formatted version of sample to use to link to
-create_sample_link <- function(sample) {
-  sample <- tolower(sample)
-  sample <- gsub("[^a-z0-9]+", "-", sample)
-  sample <- gsub("^-+|-+$", "", sample)
+# create_sample_link <- function(sample) {
+#   sample <- tolower(sample)
+#   sample <- gsub("[^a-z0-9]+", "-", sample)
+#   sample <- gsub("^-+|-+$", "", sample)
   
-  return(sample)
+#   return(sample)
+# }
+clean_name <- function(x) {
+  x <- tolower(x)
+  # Track values
+  out <- character(length(x))
+  seen <- list()
+  section_count <- 8 # Start at 8 because thats how it goes apparently
+  
+  for (i in seq_along(x)) {
+    name <- x[i]
+    
+    if (grepl("^\\d+$", name)) {
+      # All numeric get section-8, section-14
+      base <- "section"
+      name_clean <- paste0(base, "-", section_count)
+      # Count updates by 6...
+      section_count <- section_count + 6
+    } else {
+      # Remove leading numbers
+      name_clean <- sub("^\\d+", "", name)
+      # Replace _ and space with -
+      name_clean <- gsub("[ _]+", "-", name_clean)
+      # Count still updates but by 5...
+      section_count <- section_count + 5
+    }
+    
+    # Track if cleaned name has been used already and increment with a -# to follow how flexdashboard works
+    if (is.null(seen[[name_clean]])) {
+      seen[[name_clean]] <- 0
+      final_name <- name_clean
+    } else {
+      seen[[name_clean]] <- seen[[name_clean]] + 1
+      final_name <- paste0(name_clean, "-", seen[[name_clean]])
+    }
+    
+    out[i] <- final_name
+  }
+  
+  return(out)
 }
 
 # Call a plotly plot so it can load later within for loops
@@ -247,7 +286,6 @@ metrics_df <- select(summary_df,
   Sample,
   Genotype,
   `Matched DSId`,
-  `# Input Reads`,
   `# Aligned Reads`,
   `Mean Depth`,
   `Median Depth`,
@@ -261,7 +299,7 @@ metrics_df <- select(summary_df,
 # Add in a link for each sample
 metrics_df$Sample <- sprintf(
   '<a href="MeaSeq_Report.html#%s" style="color: #000000;">%s</a>',
-  create_sample_link(metrics_df$Sample),
+  clean_name(metrics_df$Sample),
   metrics_df$Sample
 )
 
@@ -276,6 +314,7 @@ metrics_dt <- metrics_df %>%
     ),
     options = list(
       pageLength = 10,
+      order = list(list(7, 'desc'), list(3, 'desc')),
       scrollX = FALSE,
       scrollY = "",
       columnDefs = list(
