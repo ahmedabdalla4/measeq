@@ -125,14 +125,6 @@ add_pass_value_int <- function(df, column) {
   return(results)
 }
 
-# Create a simplified and formatted version of sample to use to link to
-# create_sample_link <- function(sample) {
-#   sample <- tolower(sample)
-#   sample <- gsub("[^a-z0-9]+", "-", sample)
-#   sample <- gsub("^-+|-+$", "", sample)
-  
-#   return(sample)
-# }
 clean_name <- function(x) {
   x <- tolower(x)
   # Track values
