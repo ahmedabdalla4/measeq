@@ -18,7 +18,6 @@ process MAKE_CUSTOM_REPORT {
 
     output:
     path "*.html", emit: html
-    path "*_files", emit: data_dir // Using self-contained false 
     path "versions.yml", emit: versions
 
     when:
