@@ -2,6 +2,7 @@
 '''Compare all sample N450 sequences to reference database'''
 import argparse
 import csv
+import hashlib
 from Bio import SeqIO
 from pathlib import Path
 
@@ -59,10 +60,30 @@ def load_dsids(dsid_fasta: Path) -> dict:
 
     Returns:
     --------
-    dict structured as {sequence: disd}
+    Dict structured as {sequence: disd}
     '''
     dsid_seqs = {str(record.seq).upper(): record.id for record in SeqIO.parse(dsid_fasta, "fasta")}
     return dsid_seqs
+
+
+def hash_seq(seq: str, length: int = 5) -> str:
+    '''
+    Purpose:
+    --------
+    Hash newly found N450 sequences so that they match between runs
+
+    Parameters:
+    -----------
+    seq - str
+        N450 sequence string
+    length - int
+        How long of the hash to return
+
+    Returns:
+    --------
+    String of input length of the hash
+    '''
+    return hashlib.md5(seq.encode()).hexdigest()[:length]
 
 
 def label_seqs(input_fasta: Path, dsid_seqs: dict, out: str) -> dict:
@@ -82,11 +103,10 @@ def label_seqs(input_fasta: Path, dsid_seqs: dict, out: str) -> dict:
 
     Returns:
     --------
-    dict structured as {sequence: disd} for new sequences
+    Dict structured as {sequence: disd} for new sequences
     '''
     # For if novel seqs found
     novel_seqs = {}
-    novel_count = 1
 
     # Match
     with open(out, 'w', newline='') as tsvfile:
@@ -114,9 +134,9 @@ def label_seqs(input_fasta: Path, dsid_seqs: dict, out: str) -> dict:
                 dsid = dsid_seqs[seq]
             else:
                 if seq not in novel_seqs:
-                    label = f'Novel-{novel_count}'
+                    seq_hash = hash_seq(seq)
+                    label = f'Novel-{seq_hash}'
                     novel_seqs[seq] = label
-                    novel_count += 1
                 dsid = novel_seqs[seq]
 
             writer.writerow([sample, dsid, completeness])

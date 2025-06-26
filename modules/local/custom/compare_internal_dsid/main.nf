@@ -32,7 +32,7 @@ process COMPARE_INTERNAL_DSID {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x.x: x.x
+        compare_dsid: x.x
     END_VERSIONS
     """
 
@@ -42,7 +42,7 @@ process COMPARE_INTERNAL_DSID {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x.x: x.x
+        compare_dsid: x.x
     END_VERSIONS
     """
 }
