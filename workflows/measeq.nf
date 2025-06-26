@@ -11,10 +11,10 @@ include { SETUP_REFERENCE_DATA    } from '../subworkflows/local/setup_reference_
 include { NANOPORE_CONSENSUS      } from '../subworkflows/local/nanopore_consensus'
 include { ILLUMINA_CONSENSUS      } from '../subworkflows/local/illumina_consensus'
 include { FASTQC                  } from '../modules/nf-core/fastqc/main'
-include { ADJUST_FASTA_HEADER     } from '../modules/local/artic/subcommands/main'
+include { ADJUST_FASTA_HEADER as ADJUST_N450_FASTA_HEADER } from '../modules/local/artic/subcommands/main'
 include { NEXTCLADE_DATASETGET    } from '../modules/nf-core/nextclade/datasetget/main'
-include { NEXTCLADE_RUN as NEXTCLADE_RUN_N450   } from '../modules/nf-core/nextclade/run/main'
-include { NEXTCLADE_RUN as NEXTCLADE_RUN_CUSTOM } from '../modules/nf-core/nextclade/run/main'
+include { NEXTCLADE_RUN as NEXTCLADE_RUN_N450             } from '../modules/nf-core/nextclade/run/main'
+include { NEXTCLADE_RUN as NEXTCLADE_RUN_CUSTOM           } from '../modules/nf-core/nextclade/run/main'
 include { SAMTOOLS_DEPTH          } from '../modules/nf-core/samtools/depth/main'
 include { COMPARE_INTERNAL_DSID   } from '../modules/local/custom/compare_internal_dsid/main'
 include { MAKE_SAMPLE_QC_CSV      } from '../modules/local/qc/sample/main'
@@ -134,13 +134,13 @@ workflow MEASEQ {
     ch_versions = ch_versions.mix(NEXTCLADE_RUN_N450.out.versions.first())
 
     // Using the N450 nextclade align, create renamed, easy to find N450 output
-    ADJUST_FASTA_HEADER(
+    ADJUST_N450_FASTA_HEADER(
         NEXTCLADE_RUN_N450.out.fasta_aligned,
         ch_reference,
         '.N450',
         '-N450'
     )
-    ch_versions = ch_versions.mix(ADJUST_FASTA_HEADER.out.versions.first())
+    ch_versions = ch_versions.mix(ADJUST_N450_FASTA_HEADER.out.versions.first())
 
     //
     // MODULE: Run nextclade again using a custom dataset to help determine QC issues in consensus seqs
@@ -161,17 +161,16 @@ workflow MEASEQ {
 
     //
     // MODULE: Compare to optional internal DSID fasta file to get DSID number
-    //  First make a channel to use if there is no input dsid to allow qc to be done
-    ch_dsid_tsv = ch_bam_bai
-        .map { it -> [it[0], []] }
-
-    // Then run and populate it if we can
+    //
+    ch_dsid_results = Channel.empty()
     if( params.dsid_fasta ) {
         COMPARE_INTERNAL_DSID(
-            ADJUST_FASTA_HEADER.out.consensus,
+            ADJUST_N450_FASTA_HEADER.out.consensus
+                .map{ it -> it[1] }
+                .collectFile(name: 'N450.fasta', sort: { it.baseName }),
             ch_id_fasta
         )
-        ch_dsid_tsv = COMPARE_INTERNAL_DSID.out.tsv
+        ch_dsid_results = COMPARE_INTERNAL_DSID.out.dsid_tsv
         ch_versions = ch_versions.mix(COMPARE_INTERNAL_DSID.out.versions.first())
     }
 
@@ -185,9 +184,8 @@ workflow MEASEQ {
             .join(NEXTCLADE_RUN_N450.out.csv, by: [0])
             .join(NEXTCLADE_RUN_CUSTOM.out.csv, by: [0])
             .join(ch_vcf, by: [0])
-            .join(ch_read_json, by: [0])
-            .join(ch_dsid_tsv, by: [0])
-            .join(ADJUST_FASTA_HEADER.out.consensus, by: [0]),
+            .join(ch_read_json, by: [0]),
+        ch_dsid_results.collect().ifEmpty([]),
         ch_genotype,
         ch_primer_bed.collect().ifEmpty([])
     )

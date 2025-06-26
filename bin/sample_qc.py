@@ -95,12 +95,6 @@ def init_parser() -> argparse.ArgumentParser:
         help='TSV containing compared DSID calls'
     )
     parser.add_argument(
-        '--n450',
-        required=False,
-        type=Path,
-        help='Fasta N450 file'
-    )
-    parser.add_argument(
         '--seq_bed',
         required=False,
         type=Path,
@@ -452,7 +446,7 @@ def get_custom_nextclade_vals(nextclade_csv: Path, sample: str) -> Tuple[str, st
     else:
         return '', '', ''
 
-def get_dsid(matched_dsid: Path, sample: str, n450: Path) -> str:
+def get_dsid(matched_dsid: Path, sample: str) -> str:
     '''
     Purpose:
     --------
@@ -464,32 +458,18 @@ def get_dsid(matched_dsid: Path, sample: str, n450: Path) -> str:
         Path to matched dsid TSV
     sample - str
         String sample name to match to dsid file
-    n450 - Path
-        N450 fasta file to check completeness
 
     Returns:
     --------
-    String of DSID or Novel or Incomplete or No Data
+    String of DSID or its value in input table or No Data
     '''
     # Check for a match
     with open(matched_dsid, 'r') as handle:
         reader = csv.DictReader(handle, delimiter='\t')
-        # There should only be 1 sample / 1 line but just in case
         for d in reader:
             if d['sample'] == sample:
                 match = str(d['matched_dsid'])
-                if match != 'None':
-                    return match
-
-    # No match, check for how complete the N450 is
-    #  Minimum 50 bytes to open file
-    if n450.stat().st_size > 50:
-        consensus = SeqIO.read(n450, "fasta")
-        _, completeness, _, _ = parse_consensus(consensus)
-        if completeness == 100:
-            return 'Novel'
-        elif completeness > 50:
-            return 'Incomplete'
+                return match
     return 'No Data'
 
 def grade_qc(completeness: float, mean_dep: float, median_dep: float, divisible: bool,
@@ -577,8 +557,8 @@ def main() -> None:
 
     # Optional inputs
     matched_dsid = 'NA'
-    if args.matched_dsid and args.n450:
-        matched_dsid = get_dsid(args.matched_dsid, args.sample, args.n450)
+    if args.matched_dsid:
+        matched_dsid = get_dsid(args.matched_dsid, args.sample)
 
     seq_primer_overlap = 'NA'
     if args.seq_bed:
