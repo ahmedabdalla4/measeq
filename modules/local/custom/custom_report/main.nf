@@ -47,7 +47,7 @@ process MAKE_CUSTOM_REPORT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:y
+        Measeq_Report: 0.1.0
     END_VERSIONS
     """
 
@@ -57,7 +57,7 @@ process MAKE_CUSTOM_REPORT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:y
+        MeaSeq_Report: 0.1.0
     END_VERSIONS
     """
 }

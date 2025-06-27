@@ -31,7 +31,7 @@ process FREEBAYES {
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:x
+        freebayes: \$(echo \$(freebayes --version 2>&1) | sed 's/version:\s*//g')
     END_VERSIONS
     """
 
@@ -42,7 +42,7 @@ process FREEBAYES {
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:x
+        freebayes: \$(echo \$(freebayes --version 2>&1) | sed 's/version:\s*//g')
     END_VERSIONS
     """
 }

@@ -32,7 +32,8 @@ process COMPARE_INTERNAL_DSID {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        compare_dsid: x.x
+        python: \$(python --version | sed 's/Python //g')
+        compare_dsid: 0.1.0
     END_VERSIONS
     """
 
@@ -42,7 +43,8 @@ process COMPARE_INTERNAL_DSID {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        compare_dsid: x.x
+        python: \$(python --version | sed 's/Python //g')
+        compare_dsid: 0.1.0
     END_VERSIONS
     """
 }

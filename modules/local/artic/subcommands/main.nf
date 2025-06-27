@@ -344,7 +344,7 @@ process ADJUST_FASTA_HEADER {
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        artic: \$(echo \$(artic --version 2>&1) | sed 's/artic //')
+        sed: \$(echo \$(sed --version) | head -n 1 | cut -d' ' -f 4)
     END_VERSIONS
     """
 }
