@@ -5,7 +5,6 @@
 */
 include { paramsSummaryMap        } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc    } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML  } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_measeq_pipeline'
 include { SETUP_REFERENCE_DATA    } from '../subworkflows/local/setup_reference_data'
 include { NANOPORE_CONSENSUS      } from '../subworkflows/local/nanopore_consensus'
@@ -230,20 +229,10 @@ workflow MEASEQ {
         ch_variants_tsv,
         ch_genotype,
         SAMTOOLS_DEPTH.out.tsv,
-        MAKE_FINAL_QC_CSV.out.csv
+        MAKE_FINAL_QC_CSV.out.csv,
+        ch_versions
     )
     ch_versions = ch_versions.mix(GENERATE_REPORT.out.versions)
-
-    //
-    // Collate and save software versions
-    //
-    softwareVersionsToYAML(ch_versions)
-        .collectFile(
-            storeDir: "${params.outdir}/pipeline_info",
-            name:  'measeq_software_'  + 'mqc_'  + 'versions.yml',
-            sort: true,
-            newLine: true
-        ).set { ch_collated_versions }
 
     emit:
     versions       = ch_versions                 // channel: [ path(versions.yml) ]

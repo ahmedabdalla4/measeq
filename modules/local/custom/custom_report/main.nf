@@ -15,6 +15,10 @@ process MAKE_CUSTOM_REPORT {
     val genotype
     path report_template
     path subpages
+    path version_yml
+    val pipeline_version
+    val revision
+    val nf_version
 
     output:
     path "*.html", emit: html
@@ -43,7 +47,7 @@ process MAKE_CUSTOM_REPORT {
     mv $variants_tsv variant_tsv/
 
     # Create Report #
-    Rscript -e "rmarkdown::render('$report_template', params = list(genotype = '$genotype', overall_qc = '$overall_qc_csv'))"
+    Rscript -e "rmarkdown::render('$report_template', params = list(genotype = '$genotype', overall_qc = '$overall_qc_csv', version = '$pipeline_version', revision = '$revision', nf_version = '$nf_version'))"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

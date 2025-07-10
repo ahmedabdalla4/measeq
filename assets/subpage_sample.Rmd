@@ -147,7 +147,9 @@ p <- p %>%
 p
 ```
 
-> **Figure 3.** Subconsensus Variant Read Counts. The sample pileup was analyzed to find positions in the genome where the non-reference allele percentage was >=15%. All positions with >=10 reads, a positional read base quality of >=10 and a map quality >=30 were included in the analysis.
+> **Figure 3.** Subconsensus Variant Read Counts. The sample pileup was analyzed to find positions in the genome where the non-reference allele percentage was >=15%.
+> All positions with >=10 reads, a positional read base quality of >=20 and a map quality >=30 were included in the analysis.
+> Mixed sites in this figure that are not in the variant table are variants that have failed processing so they are reference bases in the final consensus and not IUPAC bases.
 
 ## Row
 
@@ -160,11 +162,13 @@ var_c_names <- c("pos", "ref", "alt", "qual", "depth", "vaf", "tag")
 
 # Create table
 if (file.exists(var_f)) {
-  # Col classes incase there is few variants and they are Ts
+  # Col classes incase there is few variants and they are all Ts (odd issue but yeah)
   #  Which then becomes 'true' which is not ideal
   col_classes <- c(NA, "integer", "character", "character", rep(NA, 4))
   variants <- read.table(var_f, header = TRUE, sep = "\t", colClasses = col_classes)
   variants <- select(variants, var_c_names)
+  # Filter out failed variants
+  variants <- variants[variants$tag != "Fail", ]
   variants <- variants %>%
     rename(
       "Pos" = pos,
@@ -179,7 +183,7 @@ if (file.exists(var_f)) {
     datatable(rownames = FALSE,
       caption = htmltools::tags$caption(
         style = 'caption-side: top',
-        htmltools::strong('Table III: '), 'Consensus Variants Summary'
+        htmltools::strong('Table III: '), 'Consensus Variants Summary Table. All variants found in the consensus sequence are in the following table'
       ),
       options = list(
         pageLength = 10,

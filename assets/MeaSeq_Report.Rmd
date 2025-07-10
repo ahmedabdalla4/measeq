@@ -14,6 +14,9 @@ knitr:
   opts_chunk:
     fig_embed: false
 params:
+  version: ""
+  revision: ""
+  nf_version: ""
   genotype: ""
   overall_qc: ""
   name: ""
@@ -48,6 +51,29 @@ footer {
   color: #333;
 }
 </style>
+
+<!-- Just to inject version into the navbar -->
+```{r version_injection, echo=FALSE, results='asis'}
+cat('
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    var navbar = document.querySelector(".navbar");
+    if (navbar) {
+      var versionDiv = document.createElement("div");
+      versionDiv.textContent = "Pipeline Version ', params$version, '";
+      versionDiv.style.position = "absolute";
+      versionDiv.style.right = "20px";
+      versionDiv.style.top = "12px";
+      versionDiv.style.color = "white";
+      versionDiv.style.fontSize = "16px";
+      versionDiv.style.fontWeight = "bold";
+      versionDiv.style.zIndex = "1000";
+      navbar.appendChild(versionDiv);
+    }
+  });
+</script>
+')
+```
 
 <!-- --------------------------------------- -->
 <!-- Setup: libraries, parameters, functions -->
@@ -245,7 +271,8 @@ summary_df <- summary_df %>%
 <!-- ------------ -->
 <!-- Report Start -->
 <!-- ------------ -->
-# Run Summary
+Run Summary
+=================================
 
 ## Row
 
@@ -493,7 +520,92 @@ for ( sample_v in samples ) {
 <!-- Back to normal Rmd doc -->
 <!-- ---------------------- -->
 
-# Contact Information
+Providence
+=================================
+
+## Row
+
+### {-}
+
+```{r pipeline-name}
+valueBox('phac-nml/measeq', "Pipeline Name")
+```
+
+### {-}
+
+```{r pipeline-version}
+valueBox(params$version, "Pipeline Version")
+```
+
+### {-}
+
+```{r pipeline-rev}
+valueBox(params$revision, "Pipeline Revision")
+```
+
+### {-}
+
+```{r nfversion}
+valueBox(params$nf_version, "Nextflow Version")
+```
+
+## Row
+
+### {-}
+
+```{r version-table-display}
+# Create versions table for tracking
+#  Yaml file name shouldn't change
+version_yaml <- yaml::read_yaml("measeq_software_mqc_versions.yml")
+
+# Track to build table df
+process <- c()
+software <- c()
+versions <- c()
+
+# Loop over data to make df
+for (key_process in names(version_yaml)) {
+  process_map <- version_yaml[[key_process]]
+
+  # Workflow captured above
+  if (key_process == "Workflow") next
+
+  for (software_name in names(process_map)) {
+    software_version <- process_map[[software_name]]
+
+    # Add to lists
+    process <- c(process, key_process)
+    software <- c(software, software_name)
+    versions <- c(versions, software_version)
+  }
+}
+
+# Create df
+df <- data.frame("Process Name" = process, "Software" = software, "Version" = versions)
+
+# Create datatable
+version_dt <- df %>%
+  datatable(
+    rownames = FALSE,
+    escape = FALSE,
+    caption = htmltools::tags$caption(
+      style = 'caption-side: top',
+      htmltools::strong('Table IIII: '), 'Software and Process Version Tracking'
+    ),
+    class = 'cell-border stripe',
+    options = list(
+      scrollX = FALSE,
+      scrollY = "",
+      columnDefs = list(
+        list(className = 'dt-left', targets = "_all")
+      )
+    )
+  )
+version_dt
+```
+
+Contact Information
+=================================
 
 <style>
 /* Flip Box Container */
