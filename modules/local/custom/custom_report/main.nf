@@ -47,7 +47,15 @@ process MAKE_CUSTOM_REPORT {
     mv $variants_tsv variant_tsv/
 
     # Create Report #
-    Rscript -e "rmarkdown::render('$report_template', params = list(genotype = '$genotype', overall_qc = '$overall_qc_csv', version = '$pipeline_version', revision = '$revision', nf_version = '$nf_version'))"
+    Rscript -e "rmarkdown::render(
+        '$report_template',
+        params = list(
+            genotype = '$genotype',
+            overall_qc = '$overall_qc_csv',
+            version = '$pipeline_version',
+            revision = '$revision',
+            nf_version = '$nf_version'
+        ))"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

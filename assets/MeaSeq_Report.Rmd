@@ -61,11 +61,10 @@ cat('
     if (navbar) {
       var versionDiv = document.createElement("div");
       versionDiv.textContent = "Pipeline Version ', params$version, '";
-      versionDiv.style.position = "absolute";
-      versionDiv.style.right = "20px";
-      versionDiv.style.top = "12px";
+      versionDiv.style.position = "relative";
+      versionDiv.style.margin-right = "12px";
       versionDiv.style.color = "white";
-      versionDiv.style.fontSize = "16px";
+      versionDiv.style.fontSize = "14px";
       versionDiv.style.fontWeight = "bold";
       versionDiv.style.zIndex = "1000";
       navbar.appendChild(versionDiv);
@@ -253,6 +252,7 @@ summary_df <- summary_df %>%
     "Median Depth" = median_sequencing_depth,
     "Total Variants" = total_variants,
     "# SNPs" = num_snps,
+    "# IUPACs" = num_iupac,
     "# Deletions" = num_deletions,
     "# Deletion Sites" = num_deletion_sites,
     "# Insertions" = num_insertions,

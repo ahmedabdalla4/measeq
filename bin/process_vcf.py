@@ -193,8 +193,10 @@ def main():
     variants_out = pysam.VariantFile(args.variants_output, 'w', header=out_header)
 
     # Open the output file with the changes to apply to the consensus fasta
-    # This includes an additional tag in the VCF file
+    # This includes an additional 2 headers in the VCF file
     out_header.info.add("ConsensusTag", number=1, type='String', description="The type of base to be included in the consensus sequence (ambiguous or consensus)")
+    # Set it to 1 as the Multi-allelic sites should be resolved
+    out_header.info.add("ConsensusBase", number=1, type='String', description="The base included in the consensus sequence (to track IUPACs mostly)")
     consensus_sites_out = pysam.VariantFile(args.consensus_sites_output, 'w', header=out_header)
 
     # Setup TSV data list for later reporting
@@ -272,19 +274,20 @@ def main():
                 # always apply these to the consensus
                 consensus_tag = "consensus"
 
-                # TSV alt adjusted so can capture IUPACs in reports easier
-                alt_tsv = out_r.alts[0]
+                # To capture IUPACs in reports easier have a separate column
+                consensus_base = out_r.alts[0]
             else:
                 # record ambiguous SNPs in the consensus sequence with IUPAC codes
                 consensus_tag = "ambiguous"
                 # Genotype needs to be mixed to get an iupac
                 genotype = (0,1)
 
-                # TSV alt adjusted so can capture IUPACs in reports easier
-                alt_tsv = get_base_code(out_tuple[1], args.upper_ambiguity_frequency)
+                # To capture IUPACs in reports easier have a separate column
+                consensus_base = get_base_code(out_tuple[1], args.upper_ambiguity_frequency)
 
-            # Output for consensus generation
+            # Output for consensus generation and reporting
             out_r.info["ConsensusTag"] = consensus_tag
+            out_r.info["ConsensusBase"] = consensus_base
             out_r.samples[0]['GT'] = genotype
             consensus_sites_out.write(out_r)
 
@@ -294,7 +297,7 @@ def main():
                 out_r.chrom,
                 out_r.pos,
                 out_r.ref,
-                alt_tsv,
+                consensus_base,
                 int(out_r.qual),
                 depth,
                 vaf,
