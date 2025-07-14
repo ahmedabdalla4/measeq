@@ -131,19 +131,42 @@ p <- plot_ly(variants) %>%
     marker = list(sizemode = 'diameter', size = 15.0, opacity = 0.7),
     customdata = ~text_info,
     hovertemplate = paste(
-        '<b>Percentage</b>: %{y:.2f}<br>',
+        '<b>Non-Reference Percentage</b>: %{y:.2f}<br>',
         '%{customdata}<extra></extra>',
         sep=''
     )
   )
 
-# Add final layout to plot
-p <- p %>%
-  layout(
-    xaxis = list (title = "Position", tickformat = ".0f"),
-    yaxis = list (title = "Percent Non Reference Base", tickformat = '2.%'),
-    shapes = hline(75)
+#### Add in the Gene Annotations ####
+# Gene Rectangles
+gene_shapes <- lapply(seq_along(gene_start), function(i) {
+  list(
+    type = "rect",
+    x0 = gene_start[i], x1 = gene_end[i],
+    y0 = -3.5, y1 = -0.5,
+    fillcolor = gene_color[i],
+    line = list(color = "black"),
+    opacity = 0.8,
+    layer = "below"
   )
+})
+final_shapes <- c(gene_shapes, list(hline(75)))
+
+# Labels
+p <- p %>% add_text(
+  x = gene_label_loc,
+  y = rep(-6.5, length(gene_label_loc)),
+  text = gene_label,
+  textfont = list(size = 14, family = "Arial Black"),
+  showlegend = FALSE
+)
+
+# Add final layout to plot
+p <- p %>% layout(
+  shapes = final_shapes,
+  xaxis = list(title = "Position", tickformat = ".0f"),
+  yaxis = list(title = "Percent Non Reference Base", tickformat = '2.%')
+)
 
 p
 ```
