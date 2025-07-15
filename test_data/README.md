@@ -12,6 +12,6 @@ To Add
 
 ## Primer Bed File for Amplicon Testing
 
-There is also an example [primer bed](./primer.bed) file to test out running the amplicon steps for both pipelines. The included file is a test file and should not be used for real analyses. 
+There is also an example [primer bed](./primer.bed) file to test out running the amplicon steps for both pipelines. The included file is a test file and should not be used for real analyses.
 
 For internal sequencing we are using a custom amplicon scheme (to be released).
