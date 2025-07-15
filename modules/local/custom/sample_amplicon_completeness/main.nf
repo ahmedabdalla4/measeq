@@ -24,7 +24,8 @@ process SAMPLE_AMPLICON_COMPLETENESS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:x
+        python: \$(python --version | sed 's/Python //g')
+        calc_amplicon_completeness: 0.1.0
     END_VERSIONS
     """
 
@@ -34,7 +35,8 @@ process SAMPLE_AMPLICON_COMPLETENESS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:x
+        python: \$(python --version | sed 's/Python //g')
+        calc_amplicon_completeness: 0.1.0
     END_VERSIONS
     """
 }

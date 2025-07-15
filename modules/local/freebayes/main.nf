@@ -24,14 +24,14 @@ process FREEBAYES {
         -C 1 \\
         -F 0.05 \\
         --pooled-continuous \\
-        --min-coverage 5 \\
+        --min-coverage 10 \\
         --standard-filters \\
         | sed s/QR,Number=1,Type=Integer/QR,Number=1,Type=Float/ > ${meta.id}.vcf
 
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:x
+        freebayes: \$(echo \$(freebayes --version 2>&1) | sed 's/version:\s*//g')
     END_VERSIONS
     """
 
@@ -42,7 +42,7 @@ process FREEBAYES {
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:x
+        freebayes: \$(echo \$(freebayes --version 2>&1) | sed 's/version:\s*//g')
     END_VERSIONS
     """
 }

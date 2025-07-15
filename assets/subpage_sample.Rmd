@@ -17,7 +17,7 @@ valueBox(completeness, icon = "")
 
 ### Sample Status
 ```{r, echo=FALSE, error=TRUE}
-status_color = "#18BC9C"
+status_color = "#18BC9C" # Pass colour
 if (sample %in% failed_samples) {
   status <- "Failed"
   status_color <- "#ff5147"
@@ -50,6 +50,7 @@ sample_df <- select(sample_df,
   `Genome Length`,
   `Total Variants`,
   `# SNPs`,
+  `# IUPACs`,
   `# Deletions`,
   `# Deletion Sites`,
   `# Insertions`,
@@ -130,24 +131,37 @@ p <- plot_ly(variants) %>%
     marker = list(sizemode = 'diameter', size = 15.0, opacity = 0.7),
     customdata = ~text_info,
     hovertemplate = paste(
-        '<b>Percentage</b>: %{y:.2f}<br>',
+        '<b>Non-Reference Percentage</b>: %{y:.2f}<br>',
         '%{customdata}<extra></extra>',
         sep=''
     )
   )
 
+#### Add in the Gene Annotations ####
+final_shapes <- c(gene_shapes_normal, list(hline(75)))
+
+# Labels
+p <- p %>% add_text(
+  x = gene_label_loc,
+  y = rep(-6.5, length(gene_label_loc)),
+  text = gene_label,
+  textfont = list(size = 14, family = "Arial Black"),
+  showlegend = FALSE
+)
+
 # Add final layout to plot
-p <- p %>%
-  layout(
-    xaxis = list (title = "Position", tickformat = ".0f"),
-    yaxis = list (title = "Percent Non Reference Base", tickformat = '2.%'),
-    shapes = hline(75)
-  )
+p <- p %>% layout(
+  shapes = final_shapes,
+  xaxis = list(title = "Position", tickformat = ".0f"),
+  yaxis = list(title = "Percent Non Reference Base", tickformat = '2.%')
+)
 
 p
 ```
 
-> **Figure 3.** Subconsensus Variant Read Counts. The sample pileup was analyzed to find positions in the genome where the non-reference allele percentage was >=15%. All positions with >=10 reads, a positional read base quality of >=10 and a map quality >=30 were included in the analysis.
+> **Figure 3.** Subconsensus Variant Read Counts. The sample pileup was analyzed to find positions in the genome where the non-reference allele percentage was >=15%.
+> All positions with >=10 reads, a positional read base quality of >=20 and a map quality >=30 were included in the analysis.
+> Mixed sites in this figure that are not in the variant table are variants that have failed processing so they are reference bases in the final consensus and not IUPAC bases.
 
 ## Row
 
@@ -160,11 +174,13 @@ var_c_names <- c("pos", "ref", "alt", "qual", "depth", "vaf", "tag")
 
 # Create table
 if (file.exists(var_f)) {
-  # Col classes incase there is few variants and they are Ts
+  # Col classes incase there is few variants and they are all Ts (odd issue but yeah)
   #  Which then becomes 'true' which is not ideal
   col_classes <- c(NA, "integer", "character", "character", rep(NA, 4))
   variants <- read.table(var_f, header = TRUE, sep = "\t", colClasses = col_classes)
   variants <- select(variants, var_c_names)
+  # Filter out failed variants
+  variants <- variants[variants$tag != "Fail", ]
   variants <- variants %>%
     rename(
       "Pos" = pos,
@@ -179,7 +195,7 @@ if (file.exists(var_f)) {
     datatable(rownames = FALSE,
       caption = htmltools::tags$caption(
         style = 'caption-side: top',
-        htmltools::strong('Table III: '), 'Consensus Variants Summary'
+        htmltools::strong('Table III: '), 'Consensus Variants Summary Table. All variants found in the consensus sequence are in the following table'
       ),
       options = list(
         pageLength = 10,
@@ -217,11 +233,53 @@ Row
 ```{r, depth_plot, echo=FALSE, error=TRUE}
 #### Depth Plots ####
 # Get data
-coverage <- read.table(paste0("positional_depth/", sample, "_depth.tsv"), sep = "\t", header = FALSE)
-colnames(coverage) <- c("chrom", "position", "depth")
+depth_f <- paste0("positional_depth/", sample, "_depth.tsv")
+if (file.exists(depth_f) && file.info(depth_f)$size > 0) {
+  coverage <- read.table(depth_f, sep = "\t", header = FALSE)
+  colnames(coverage) <- c("chrom", "position", "depth")
+} else {
+  coverage <- data.frame(matrix(ncol = 3, nrow = 1))
+  colv <- c("chrom", "position", "depth")
+  colnames(coverage) <- colv
+}
 
 # Set depths of 0 to 1 to allow continuous visualization with log plot
 coverage$depth[coverage$depth == 0] <- 1
+
+# Create the background shapes needed
+background_shapes <- list(
+  list(
+    type = "rect",
+    fillcolor = "red",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 1,
+    y1 = 10
+  ),
+  list(
+    type = "rect",
+    fillcolor = "yellow",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 10,
+    y1 = 30
+  ),
+  list(
+    type = "rect",
+    fillcolor = "green",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 30,
+    y1 = max(coverage$depth)
+  )
+)
+
+final_shapes <- c(background_shapes, gene_shapes_log)
+
+# Create plot
 depthp <- plot_ly(x = ~coverage$position, y = ~coverage$depth, type = "scatter", mode = "lines", line = list(color = "black")) %>%
   layout(
     yaxis = list(
@@ -234,36 +292,21 @@ depthp <- plot_ly(x = ~coverage$position, y = ~coverage$depth, type = "scatter",
     title = "Genomic Position (nt)",
     tickformat = ".0f"
   ),
-  shapes = list(
-    list(
-      type = "rect",
-      fillcolor = "red",
-      opacity = 0.2,
-      x0 = min(coverage$position),
-      x1 = max(coverage$position),
-      y0 = 1,
-      y1 = 10
-    ),
-    list(
-      type = "rect",
-      fillcolor = "yellow",
-      opacity = 0.2,
-      x0 = min(coverage$position),
-      x1 = max(coverage$position),
-      y0 = 10,
-      y1 = 30
-    ),
-    list(
-      type = "rect",
-      fillcolor = "green",
-      opacity = 0.2,
-      x0 = min(coverage$position),
-      x1 = max(coverage$position),
-      y0 = 30,
-      y1 = max(coverage$depth)
-    )
-  )
+  shapes = final_shapes
 )
+
+# Add labels
+depthp <- depthp %>% add_text(
+  x = gene_label_loc,
+  y = rep(0.55, length(gene_label_loc)),
+  text = gene_label,
+  inherit = FALSE,
+  type = "scatter",
+  mode = "text",
+  textfont = list(size = 14, family = "Arial Black"),
+  showlegend = FALSE
+) 
+
 depthp
 ```
 > **Figure 4.** Positional genomic depth. The Y-axis is log-scaled so positions with no genomic depth have been set to 1 to allow a continuous visualization. Zones have been marked using a colour scheme where: 0-10 is red corresponding to masked sites, 10-30 is yellow corresponding to sites where there is a basecall but limited depth, and 30+ is green for positions with acceptable or better depth.
@@ -278,6 +321,39 @@ Row
 quality <- read.table(paste0("positional_baseq/", sample, ".baseq.stats.tsv"), sep = "\t", header = TRUE)
 custom_tickvals <- c(0,10,20,30)
 
+# Create the background shapes needed
+background_shapes <- list(
+  list(
+    type = "rect",
+    fillcolor = "red",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 0,
+    y1 = 20
+  ),
+  list(
+    type = "rect",
+    fillcolor = "yellow",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 20,
+    y1 = 30
+  ),
+  list(
+    type = "rect",
+    fillcolor = "green",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 30,
+    y1 = 60
+  )
+)
+
+final_shapes <- c(background_shapes, gene_shapes_normal)
+
 # Plot
 qualityp <- plot_ly(quality ,x = ~quality$'pos', y = ~quality$'rms_baseq', type = "scatter", mode = "lines", line = list(color = "black")) %>%
   layout(
@@ -289,36 +365,21 @@ qualityp <- plot_ly(quality ,x = ~quality$'pos', y = ~quality$'rms_baseq', type 
       title = "Genomic Position (nt)",
       tickformat = ".0f"
     ),
-    shapes = list(
-      list(
-        type = "rect",
-        fillcolor = "red",
-        opacity = 0.2,
-        x0 = min(quality$pos),
-        x1 = max(quality$pos),
-        y0 = 0,
-        y1 = 20
-      ),
-      list(
-        type = "rect",
-        fillcolor = "yellow",
-        opacity = 0.2,
-        x0 = min(quality$pos),
-        x1 = max(quality$pos),
-        y0 = 20,
-        y1 = 30
-      ),
-      list(
-        type = "rect",
-        fillcolor = "green",
-        opacity = 0.2,
-        x0 = min(quality$pos),
-        x1 = max(quality$pos),
-        y0 = 30,
-        y1 = 60
-      )
-    )
+    shapes = final_shapes
   )
+
+# Add labels
+qualityp <- qualityp %>% add_text(
+  x = gene_label_loc,
+  y = rep(-6.5, length(gene_label_loc)),
+  text = gene_label,
+  inherit = FALSE,
+  type = "scatter",
+  mode = "text",
+  textfont = list(size = 14, family = "Arial Black"),
+  showlegend = FALSE
+)
+
 qualityp
 ```
 > **Figure 5.** Average root-mean-square read base quality score per genomic position

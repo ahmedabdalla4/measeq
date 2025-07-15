@@ -64,6 +64,7 @@ process GENERATE_AMPLICON_BED {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(python --version | sed 's/Python //g')
+        primers_to_amplicons: 0.1.0
     END_VERSIONS
     """
 
@@ -76,6 +77,7 @@ process GENERATE_AMPLICON_BED {
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         python: \$(python --version | sed 's/Python //g')
+        primers_to_amplicons: 0.1.0
     END_VERSIONS
     """
 }

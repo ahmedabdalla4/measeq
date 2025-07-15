@@ -18,7 +18,7 @@ process PROCESS_VCF {
     output:
     tuple val(meta), path("${meta.id}.consensus.norm.vcf.gz"), path("${meta.id}.consensus.norm.vcf.gz.tbi"), emit: consensus_vcf
     tuple val(meta), path("${meta.id}.ambiguous.norm.vcf.gz"), path("${meta.id}.ambiguous.norm.vcf.gz.tbi"), emit: ambiguous_vcf
-    tuple val(meta), path("${meta.id}.variants.vcf"), emit: variants_vcf
+    tuple val(meta), path("${meta.id}.processed.norm.vcf.gz"), path("${meta.id}.processed.norm.vcf.gz.tbi"), emit: total_vcf
     tuple val(meta), path("${meta.id}.consensus.tsv"), emit: variants_tsv
     path "versions.yml", emit: versions
 
@@ -54,10 +54,16 @@ process PROCESS_VCF {
         tabix -p vcf ${meta.id}.\$vt.norm.vcf.gz
     done
 
+    # Final combined VCF for reporting
+    bgzip -f ${meta.id}.processed.norm.vcf
+    tabix -p vcf ${meta.id}.processed.norm.vcf.gz
+
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:y
+        bcftools: \$(bcftools --version 2>&1 | head -n1 | sed 's/^.*bcftools //; s/ .*\$//')
+        python: \$(python --version | sed 's/Python //g')
+        process_vcf: 0.1.0
     END_VERSIONS
     """
 
@@ -71,12 +77,17 @@ process PROCESS_VCF {
 
     touch ${meta.id}.variants.vcf
 
+    touch ${meta.id}.processed.norm.vcf.gz
+    touch ${meta.id}.processed.norm.vcf.gz.tbi
+
     touch ${meta.id}.consensus.tsv
 
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:y
+        bcftools: \$(bcftools --version 2>&1 | head -n1 | sed 's/^.*bcftools //; s/ .*\$//')
+        python: \$(python --version | sed 's/Python //g')
+        process_vcf: 0.1.0
     END_VERSIONS
     """
 }
