@@ -250,6 +250,38 @@ if ( max(summary_df$genome_length) < 15800 ) {
   gene_end <- c(1685, 3330, 4445, 7110, 9124, 15785)
   gene_label_loc <- c(896, 2568, 3941, 6284, 8197, 12509)
 }
+# Gene Rectangles for Plotly
+gene_shapes_normal <- lapply(seq_along(gene_start), function(i) {
+  list(
+    type = "rect",
+    x0 = gene_start[i], x1 = gene_end[i],
+    y0 = -3.5, y1 = -0.5,
+    fillcolor = gene_color[i],
+    line = list(color = "black"),
+    opacity = 0.8,
+    layer = "below"
+  )
+})
+gene_shapes_log <- lapply(seq_along(gene_start), function(i) {
+  list(
+    type = "rect",
+    x0 = gene_start[i], x1 = gene_end[i],
+    y0 = 0.7, y1 = 0.9,
+    fillcolor = gene_color[i],
+    line = list(color = "black"),
+    opacity = 0.8,
+    layer = "below"
+  )
+})
+
+# Gene DF for ggplot
+gene_df <- data.frame(
+  label = gene_label,
+  start = gene_start,
+  end = gene_end,
+  label_pos = gene_label_loc,
+  color = gene_color
+)
 
 # Rename wanted final columns
 #  Select them later for different tables
@@ -414,7 +446,7 @@ summary_depth_df <- long_df %>%
   )
 summary_depth_df$ymin[summary_depth_df$ymin < 0] <- 0
 
-# Plot static image for now
+# Plot static image
 max_pos <- max(summary_depth_df$position, na.rm = TRUE)
 p <- ggplot(summary_depth_df, aes(x = position)) +
   geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "blue", alpha = 0.25) +
@@ -489,6 +521,23 @@ p <- ggplot(summary_depth_df, aes(x = position)) +
     panel.grid.minor.x = element_line(color = "#dadce0", linetype = "dotted"),
     panel.grid.major.x = element_line(color = "#dadce0", linetype = "dotted")
   )
+
+# Add Genes
+p <- p +
+  geom_rect(
+    data = gene_df,
+    aes(xmin = start, xmax = end, ymin = -4, ymax = -1.5),
+    fill = gene_df$color,
+    color = "black",
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = gene_df,
+    aes(x = label_pos, y = -6.5, label = label),
+    size = 3,
+    inherit.aes = FALSE
+  ) +
+  expand_limits(y = -5)
 
 p
 ```

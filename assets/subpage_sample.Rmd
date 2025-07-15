@@ -138,19 +138,7 @@ p <- plot_ly(variants) %>%
   )
 
 #### Add in the Gene Annotations ####
-# Gene Rectangles
-gene_shapes <- lapply(seq_along(gene_start), function(i) {
-  list(
-    type = "rect",
-    x0 = gene_start[i], x1 = gene_end[i],
-    y0 = -3.5, y1 = -0.5,
-    fillcolor = gene_color[i],
-    line = list(color = "black"),
-    opacity = 0.8,
-    layer = "below"
-  )
-})
-final_shapes <- c(gene_shapes, list(hline(75)))
+final_shapes <- c(gene_shapes_normal, list(hline(75)))
 
 # Labels
 p <- p %>% add_text(
@@ -245,11 +233,53 @@ Row
 ```{r, depth_plot, echo=FALSE, error=TRUE}
 #### Depth Plots ####
 # Get data
-coverage <- read.table(paste0("positional_depth/", sample, "_depth.tsv"), sep = "\t", header = FALSE)
-colnames(coverage) <- c("chrom", "position", "depth")
+depth_f <- paste0("positional_depth/", sample, "_depth.tsv")
+if (file.exists(depth_f)) {
+  coverage <- read.table(depth_f, sep = "\t", header = FALSE)
+  colnames(coverage) <- c("chrom", "position", "depth")
+} else {
+  coverage <- data.frame(matrix(ncol = 3, nrow = 1))
+  colv <- c("chrom", "position", "depth")
+  colnames(coverage) <- colv
+}
 
 # Set depths of 0 to 1 to allow continuous visualization with log plot
 coverage$depth[coverage$depth == 0] <- 1
+
+# Create the background shapes needed
+background_shapes <- list(
+  list(
+    type = "rect",
+    fillcolor = "red",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 1,
+    y1 = 10
+  ),
+  list(
+    type = "rect",
+    fillcolor = "yellow",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 10,
+    y1 = 30
+  ),
+  list(
+    type = "rect",
+    fillcolor = "green",
+    opacity = 0.2,
+    x0 = min(coverage$position),
+    x1 = max(coverage$position),
+    y0 = 30,
+    y1 = max(coverage$depth)
+  )
+)
+
+final_shapes <- c(background_shapes, gene_shapes_log)
+
+# Create plot
 depthp <- plot_ly(x = ~coverage$position, y = ~coverage$depth, type = "scatter", mode = "lines", line = list(color = "black")) %>%
   layout(
     yaxis = list(
@@ -262,36 +292,21 @@ depthp <- plot_ly(x = ~coverage$position, y = ~coverage$depth, type = "scatter",
     title = "Genomic Position (nt)",
     tickformat = ".0f"
   ),
-  shapes = list(
-    list(
-      type = "rect",
-      fillcolor = "red",
-      opacity = 0.2,
-      x0 = min(coverage$position),
-      x1 = max(coverage$position),
-      y0 = 1,
-      y1 = 10
-    ),
-    list(
-      type = "rect",
-      fillcolor = "yellow",
-      opacity = 0.2,
-      x0 = min(coverage$position),
-      x1 = max(coverage$position),
-      y0 = 10,
-      y1 = 30
-    ),
-    list(
-      type = "rect",
-      fillcolor = "green",
-      opacity = 0.2,
-      x0 = min(coverage$position),
-      x1 = max(coverage$position),
-      y0 = 30,
-      y1 = max(coverage$depth)
-    )
-  )
+  shapes = final_shapes
 )
+
+# Add labels
+depthp <- depthp %>% add_text(
+  x = gene_label_loc,
+  y = rep(0.55, length(gene_label_loc)),
+  text = gene_label,
+  inherit = FALSE,
+  type = "scatter",
+  mode = "text",
+  textfont = list(size = 14, family = "Arial Black"),
+  showlegend = FALSE
+) 
+
 depthp
 ```
 > **Figure 4.** Positional genomic depth. The Y-axis is log-scaled so positions with no genomic depth have been set to 1 to allow a continuous visualization. Zones have been marked using a colour scheme where: 0-10 is red corresponding to masked sites, 10-30 is yellow corresponding to sites where there is a basecall but limited depth, and 30+ is green for positions with acceptable or better depth.
@@ -306,6 +321,39 @@ Row
 quality <- read.table(paste0("positional_baseq/", sample, ".baseq.stats.tsv"), sep = "\t", header = TRUE)
 custom_tickvals <- c(0,10,20,30)
 
+# Create the background shapes needed
+background_shapes <- list(
+  list(
+    type = "rect",
+    fillcolor = "red",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 0,
+    y1 = 20
+  ),
+  list(
+    type = "rect",
+    fillcolor = "yellow",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 20,
+    y1 = 30
+  ),
+  list(
+    type = "rect",
+    fillcolor = "green",
+    opacity = 0.2,
+    x0 = min(quality$pos),
+    x1 = max(quality$pos),
+    y0 = 30,
+    y1 = 60
+  )
+)
+
+final_shapes <- c(background_shapes, gene_shapes_normal)
+
 # Plot
 qualityp <- plot_ly(quality ,x = ~quality$'pos', y = ~quality$'rms_baseq', type = "scatter", mode = "lines", line = list(color = "black")) %>%
   layout(
@@ -317,36 +365,21 @@ qualityp <- plot_ly(quality ,x = ~quality$'pos', y = ~quality$'rms_baseq', type 
       title = "Genomic Position (nt)",
       tickformat = ".0f"
     ),
-    shapes = list(
-      list(
-        type = "rect",
-        fillcolor = "red",
-        opacity = 0.2,
-        x0 = min(quality$pos),
-        x1 = max(quality$pos),
-        y0 = 0,
-        y1 = 20
-      ),
-      list(
-        type = "rect",
-        fillcolor = "yellow",
-        opacity = 0.2,
-        x0 = min(quality$pos),
-        x1 = max(quality$pos),
-        y0 = 20,
-        y1 = 30
-      ),
-      list(
-        type = "rect",
-        fillcolor = "green",
-        opacity = 0.2,
-        x0 = min(quality$pos),
-        x1 = max(quality$pos),
-        y0 = 30,
-        y1 = 60
-      )
-    )
+    shapes = final_shapes
   )
+
+# Add labels
+qualityp <- qualityp %>% add_text(
+  x = gene_label_loc,
+  y = rep(-6.5, length(gene_label_loc)),
+  text = gene_label,
+  inherit = FALSE,
+  type = "scatter",
+  mode = "text",
+  textfont = list(size = 14, family = "Arial Black"),
+  showlegend = FALSE
+)
+
 qualityp
 ```
 > **Figure 5.** Average root-mean-square read base quality score per genomic position
