@@ -7,9 +7,7 @@
     IMPORT FUNCTIONS / MODULES / SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { UTILS_NFSCHEMA_PLUGIN     } from '../../nf-core/utils_nfschema_plugin'
-include { paramsSummaryMap          } from 'plugin/nf-schema'
-include { samplesheetToList         } from 'plugin/nf-schema'
+include { validateParameters; paramsHelp; paramsSummaryLog; fromSamplesheet } from 'plugin/nf-validation'
 include { completionSummary         } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NFCORE_PIPELINE     } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NEXTFLOW_PIPELINE   } from '../../nf-core/utils_nextflow_pipeline'
@@ -45,13 +43,12 @@ workflow PIPELINE_INITIALISATION {
     )
 
     //
-    // Validate parameters and generate parameter summary to stdout
+    // Help
     //
-    // UTILS_NFSCHEMA_PLUGIN (
-    //     workflow,
-    //     validate_params,
-    //     null
-    // )
+    if (params.help) {
+        log.info paramsHelp("nextflow run phac-nml/measeq -profile <profile> --input samplesheet.csv --platform <illumina|nanopore> --outdir <outdir>")
+        exit 0
+    }
 
     //
     // Check config provided to the pipeline
@@ -61,10 +58,18 @@ workflow PIPELINE_INITIALISATION {
     )
 
     //
+    // Summarize and Validate Params
+    //
+    if (validate_params) {
+        validateParameters()
+    }
+    log.info paramsSummaryLog(workflow)
+
+    //
     // Create channel from input file provided through params.input
     //
     Channel
-        .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
+        .fromSamplesheet("input")
         .map {
             meta, fastq_1, fastq_2 ->
                 if (!fastq_2) {
@@ -101,7 +106,6 @@ workflow PIPELINE_COMPLETION {
     monochrome_logs // boolean: Disable ANSI colour codes in log output
 
     main:
-    // summary_params = paramsSummaryMap(workflow, parameters_schema: "nextflow_schema.json")
 
     //
     // Completion email and summary

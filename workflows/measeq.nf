@@ -3,9 +3,6 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { paramsSummaryMap        } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc    } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_measeq_pipeline'
 include { SETUP_REFERENCE_DATA    } from '../subworkflows/local/setup_reference_data'
 include { NANOPORE_CONSENSUS      } from '../subworkflows/local/nanopore_consensus'
 include { ILLUMINA_CONSENSUS      } from '../subworkflows/local/illumina_consensus'
