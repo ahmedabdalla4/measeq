@@ -224,7 +224,7 @@ summary_df[summary_df == ""] <- NA
 
 # Get counts of passing, warning, and failing samples for display
 total_samples_count <- nrow(summary_df)
-failed_samples_count <- sum(with(summary_df, genome_completeness_percent < 50 & qc_status != "PASS"))
+failed_samples_count <- sum( with(summary_df, genome_completeness_percent < 50 & qc_status != "PASS") )
 passing_samples_count <- total_samples_count - failed_samples_count
 warning_samples_count <- ( sum(summary_df[["qc_status"]] != "PASS", na.rm = FALSE) - failed_samples_count )
 
@@ -233,7 +233,7 @@ summary_df$status_colour_code <- add_pass_value_int(summary_df, 'qc_status')
 
 # Create vector of failed samples for the failed samples page
 failed_samples <- summary_df %>%
-  filter(`genome_completeness_percent` < 50) %>%
+  filter(genome_completeness_percent < 50 & qc_status != "PASS") %>%
   pull(sample)
 
 # Gene Info based on final length
@@ -522,22 +522,22 @@ p <- ggplot(summary_depth_df, aes(x = position)) +
     panel.grid.major.x = element_line(color = "#dadce0", linetype = "dotted")
   )
 
-# Add Genes
-p <- p +
-  geom_rect(
-    data = gene_df,
-    aes(xmin = start, xmax = end, ymin = -4, ymax = -1.5),
-    fill = gene_df$color,
-    color = "black",
-    inherit.aes = FALSE
-  ) +
-  geom_text(
-    data = gene_df,
-    aes(x = label_pos, y = -6.5, label = label),
-    size = 3,
-    inherit.aes = FALSE
-  ) +
-  expand_limits(y = -5)
+# Add Genes - Going to have to rethink this as its scale is a bit wonky with the data
+# p <- p +
+#   geom_rect(
+#     data = gene_df,
+#     aes(xmin = start, xmax = end, ymin = -4, ymax = -1.5),
+#     fill = gene_df$color,
+#     color = "black",
+#     inherit.aes = FALSE
+#   ) +
+#   geom_text(
+#     data = gene_df,
+#     aes(x = label_pos, y = -6.5, label = label),
+#     size = 3,
+#     inherit.aes = FALSE
+#   ) +
+#   expand_limits(y = -5)
 
 p
 ```

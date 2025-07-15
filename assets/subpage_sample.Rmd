@@ -17,7 +17,7 @@ valueBox(completeness, icon = "")
 
 ### Sample Status
 ```{r, echo=FALSE, error=TRUE}
-status_color = "#18BC9C"
+status_color = "#18BC9C" # Pass colour
 if (sample %in% failed_samples) {
   status <- "Failed"
   status_color <- "#ff5147"
@@ -234,7 +234,7 @@ Row
 #### Depth Plots ####
 # Get data
 depth_f <- paste0("positional_depth/", sample, "_depth.tsv")
-if (file.exists(depth_f)) {
+if (file.exists(depth_f) && file.info(depth_f)$size > 0) {
   coverage <- read.table(depth_f, sep = "\t", header = FALSE)
   colnames(coverage) <- c("chrom", "position", "depth")
 } else {
