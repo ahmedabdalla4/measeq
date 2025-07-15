@@ -241,7 +241,15 @@ def parse_vcf(vcf_file: Path) -> Tuple[str, list, str, dict]:
     String of parsed variants to report
     List of variant-range dicts
     Dict of different variant counts
-        {'total_variants': int, 'num_snps': int, 'num_deletions': int, 'num_deletion_sites': int, 'num_insertions': int, 'num_insertion_sites': int}
+        {
+            'total_variants': int,
+            'num_snps': int,
+            'num_iupac': int,
+            'num_deletions': int,
+            'num_deletion_sites': int,
+            'num_insertions': int,
+            'num_insertion_sites': int
+        }
     '''
     # Base outputs
     variants = []
@@ -249,6 +257,7 @@ def parse_vcf(vcf_file: Path) -> Tuple[str, list, str, dict]:
     var_count_dict = {
         'total_variants': 0,
         'num_snps': 0,
+        'num_iupac': 0,
         'num_deletions': 0,
         'num_deletion_sites': 0,
         'num_insertions': 0,
@@ -271,10 +280,16 @@ def parse_vcf(vcf_file: Path) -> Tuple[str, list, str, dict]:
                 print(f'WARNING: Multiple alleles not supported currently. Using only the first one for position: {record.POS}')
 
             # Create string of variant and add to list of variants along with getting the lengths of the ref and alt
-            variant = f'{record.REF}{record.POS}{record.ALT[0]}'
             ref_len = len(record.REF)
             alt_len = len(record.ALT[0])
             alt_str = str(record.ALT[0])
+            # For IUPACs make sure that the info column exists and is ambiguous
+            #  This is just for Illumina, no Nanopore ambiguous at the moment
+            iupac = False
+            if (record.INFO["ConsensusTag"]) and (record.INFO["ConsensusTag"] == 'ambiguous'):
+                iupac = True
+                alt_str = record.INFO["ConsensusBase"]
+            variant = f'{record.REF}{record.POS}{alt_str}'
 
             # Type of mutation leads to different spots affected and tracking
             if variant not in variants:
@@ -305,11 +320,17 @@ def parse_vcf(vcf_file: Path) -> Tuple[str, list, str, dict]:
                         variant = f'{ref_base}{mult_snp_range[i]}{alt_str[i]}'
                         variants.append(variant)
                         variant_positions.append(_create_variantpos_dict(variant, range(mult_snp_range[i], mult_snp_range[i]+1)))
-                        var_count_dict['num_snps'] += 1
+                        if iupac:
+                            var_count_dict['num_iupac'] += 1
+                        else:
+                            var_count_dict['num_snps'] += 1
                 else:
                     variants.append(variant)
                     variant_positions.append(_create_variantpos_dict(variant, range(record.POS, record.POS+1)))
-                    var_count_dict['num_snps'] += 1
+                    if iupac:
+                        var_count_dict['num_iupac'] += 1
+                    else:
+                        var_count_dict['num_snps'] += 1
 
     # Final Summary and Return
     if variants:
@@ -461,15 +482,16 @@ def get_dsid(matched_dsid: Path, sample: str) -> str:
 
     Returns:
     --------
-    String DSID or 'NA'
+    String of DSID or its value in input table or No Data
     '''
+    # Check for a match
     with open(matched_dsid, 'r') as handle:
         reader = csv.DictReader(handle, delimiter='\t')
-        # There should only be 1 sample / 1 line but just in case
         for d in reader:
             if d['sample'] == sample:
-                return str(d['matched_dsid'])
-    return 'NA'
+                match = str(d['matched_dsid'])
+                return match
+    return 'No Data'
 
 def grade_qc(completeness: float, mean_dep: float, median_dep: float, divisible: bool,
              frameshift: bool, nonsense_mutation: bool, stop_mutation: bool, genotype_match: bool) -> str:
@@ -585,6 +607,7 @@ def main() -> None:
         'median_sequencing_depth': [median_dep],
         'total_variants': [var_count_dict['total_variants']],
         'num_snps': [var_count_dict['num_snps']],
+        'num_iupac': [var_count_dict['num_iupac']],
         'num_deletions': [var_count_dict['num_deletions']],
         'num_deletion_sites': [var_count_dict['num_deletion_sites']],
         'num_insertions': [var_count_dict['num_insertions']],
