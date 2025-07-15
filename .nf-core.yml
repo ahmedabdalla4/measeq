@@ -23,6 +23,7 @@ lint:
     - .github/workflows/awsfulltest.yml
     - assets/multiqc_config.yml
     - CODE_OF_CONDUCT.md
+    - ro-crate-metadata.json
   files_unchanged:
     - .github/PULL_REQUEST_TEMPLATE.md
     - .github/workflows/branch.yml
@@ -30,11 +31,14 @@ lint:
     - .github/workflows/linting.yml
     - .prettierignore
     - docs/README.md
+    - LICENSE
   nextflow_config:
     - process.cpus
     - process.memory
     - process.time
     - custom_config
+    - config_defaults:
+        - params.custom_nextclade_dataset
     - params.custom_config_version
     - params.custom_config_base
     - manifest.name

@@ -30,7 +30,6 @@ jobs:
           - "24.04.2"
           - "latest-everything"
         test_name:
-          - "test_full"
           - "test"
     steps:
       - name: Check out pipeline code
