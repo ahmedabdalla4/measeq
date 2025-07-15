@@ -129,7 +129,7 @@ nextflow run phac-nml/measeq \
 
 ### Amplicon and Primer Files
 
-*Both* Illumina and Nanopore support running amplicon data using a primer scheme file. To run amplicon data all you need is a primer bed file where the primers have been mapped to the location in the reference genome used. The parameter being `--primer_bed <PRIMER_BED>`. An example primer bed file looks as such:
+_Both_ Illumina and Nanopore support running amplicon data using a primer scheme file. To run amplicon data all you need is a primer bed file where the primers have been mapped to the location in the reference genome used. The parameter being `--primer_bed <PRIMER_BED>`. An example primer bed file looks as such:
 
 **primer.bed**
 

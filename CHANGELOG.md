@@ -23,7 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - N plots of the final report to help lower size and speed up opening
 
-
 ## v0.2.0 - [2025-06-06]
 
 ### `Added`
