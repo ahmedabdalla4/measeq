@@ -3,6 +3,7 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
+include { loadIridaSampleIds      } from 'plugin/nf-iridanext'
 include { SETUP_REFERENCE_DATA    } from '../subworkflows/local/setup_reference_data'
 include { NANOPORE_CONSENSUS      } from '../subworkflows/local/nanopore_consensus'
 include { ILLUMINA_CONSENSUS      } from '../subworkflows/local/illumina_consensus'
