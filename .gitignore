@@ -29,3 +29,4 @@ work/
 # Results and tests
 results/
 .nf-test.log
+.nf-test/
