@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # Written by @jts from https://github.com/jts/ncov2019-artic-nf/blob/be26baedcc6876a798a599071bb25e0973261861/bin/process_gvcf.py
-# Slight adjustments made such that were focused on just the mutations and not the GVCF info
+
+# Adjustments made such that were focused on just the mutations and not the GVCF info
 #  Along with that, added in genotype to allow new versions of bcftools consensus to work
+#  And adjusting how Del+Snp complex sites are handled
 
 import argparse
 import pysam

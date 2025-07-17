@@ -1,6 +1,6 @@
-process ARTIC_GET_MODELS {
+process VCF_TO_TSV {
     label 'process_single'
-    tag "Download"
+    tag "$meta.id"
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
@@ -8,42 +8,35 @@ process ARTIC_GET_MODELS {
         'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
-    val model
+    tuple val(meta), path(vcf), path(tbi)
 
     output:
-    path("clair3_models/${model}"), emit: model
-    path("versions.yml"), emit: versions
+    tuple val(meta), path("${meta.id}.consensus.tsv"), optional: true, emit: tsv
+    path "versions.yml", emit: versions
 
     script:
-    // Just downloading all the clair3 models to a dir to allow selecting later
-    //  Some already exist, but to match the method have to copy them
-    //  Downloading each time is unideal however
     """
-    # Have to try this with conda to make sure it also works there
-    CLAIR_BIN_DIR=\$(dirname \$(which run_clair3.sh))
-
-    mkdir -p clair3_models
-    if ls \$CLAIR_BIN_DIR/models/ | grep -q '$model' ; then
-        cp -r \$CLAIR_BIN_DIR/models/$model ./clair3_models/
-    else
-        artic_get_models --model-dir ./clair3_models
-    fi
+    vcf_to_tsv.py \\
+        --sample "${meta.id}" \\
+        --vcf $vcf
 
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         artic: \$(echo \$(artic --version 2>&1) | sed 's/artic //')
+        vcf_to_tsv: 0.1.0
     END_VERSIONS
     """
 
     stub:
     """
-    mkdir -p clair3_models/$model
+    ${meta.id}.consensus.tsv
 
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         artic: \$(echo \$(artic --version 2>&1) | sed 's/artic //')
+        vcf_to_tsv: 0.1.0
     END_VERSIONS
     """
 }

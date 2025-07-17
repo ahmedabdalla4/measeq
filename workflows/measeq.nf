@@ -98,7 +98,7 @@ workflow MEASEQ {
         ch_bam_bai      = NANOPORE_CONSENSUS.out.bam_bai
         ch_consensus    = NANOPORE_CONSENSUS.out.consensus
         ch_vcf          = NANOPORE_CONSENSUS.out.vcf
-        ch_variants_tsv = Channel.empty() // for now, need to set this up still
+        ch_variants_tsv = NANOPORE_CONSENSUS.out.variants_tsv
         ch_versions     = ch_versions.mix(NANOPORE_CONSENSUS.out.versions)
 
     } else if( params.platform == 'illumina' ) {
