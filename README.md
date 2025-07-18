@@ -1,7 +1,7 @@
 # MeaSeq: Measles Sequence Analysis Automation
 
-- [Updates](#updates)
-  - [2025-05-29](#2025-05-29)
+- [Current Updates](#current-updates)
+  - [2025-07-18](#2025-07-18)
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Resource Requirements](#resources-requirements)
@@ -9,6 +9,7 @@
   - [Illumina](#illumina)
   - [Nanopore](#nanopore)
   - [Amplicon and Primer Files](#amplicon-and-primer-files)
+  - [DSIds](#dsids)
   - [More Run Options](#more-run-options)
   - [Testing](#testing)
 - [Outputs](#outputs)
@@ -21,15 +22,14 @@
 - [Contributing](#legal)
 - [Legal](#legal)
 
-## Updates
+## Current Updates
 
-### _2025-06-06_
+### _2025-07-18_
 
-- Switched to running all steps with nextflow for the following reasons:
-  - Allow more control over all of the steps
-  - Easier to install/run along with having more dependency management options (IE not required to use `conda`)
-  - Eventual implementation to IRIDA-Next
-- Focus is **currently on Illumina data** although the nanopore side _should_ still work other than the final report
+- Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
+- Dependency management fully available with `Docker`, `Singularity`, and `Conda`
+- Can assign DSIds from reference multi-fasta file and give new N450s a `Novel-hash` label
+   - With `--dsid_fasta <FASTA>`
 
 ## Introduction
 
@@ -44,7 +44,7 @@ This project aims to implement an open-source, easy to run, MeV Whole Genome Seq
 > [!NOTE]
 > If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/usage/installation) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/usage/introduction#how-to-run-a-pipeline) with `-profile test` before running the workflow on actual data.
 
-Installation requires both [nextflow](https://www.nextflow.io/) at a minimum version of `24.04.2` and a dependency management system to run.
+Installation requires both [nextflow](https://www.nextflow.io/) at a minimum version of `24.10.0` and a dependency management system to run.
 
 Steps:
 
@@ -58,7 +58,7 @@ Steps:
 
    - _Note_: Currently the plotting process is using a custom docker container but it should work for both docker and singularity
 
-3. Run the pipeline with one of the following profiles to handle dependencies (or use your [own profile](https://nf-co.re/docs/usage/getting_started/configuration) if you have one for your institution!:
+3. Run the pipeline with one of the following profiles to handle dependencies (or use your [own profile](https://nf-co.re/docs/usage/getting_started/configuration)) if you have one for your institution!:
    - `conda`
    - `mamba`
    - `singularity`
@@ -70,7 +70,7 @@ By default, the `bwamem2` step has a minimum resource usage allocation set to `1
 
 This can be adjusted (along with the other labels) by creating and passing a [custom configuration file](https://nf-co.re/docs/usage/getting_started/configuration) with `-c <config>`. More info can be found in the [usage doc](./docs/usage.md)
 
-The pipeline has also been test using as low as `2 cpus` and `16GB memory`
+The pipeline has also been test using as low as `2 cpus` and `8GB memory` with a few throttling steps but functional.
 
 ## Usage
 
@@ -93,11 +93,11 @@ You can then run the pipeline using:
 
 ```bash
 nextflow run phac-nml/measeq \
+    -profile <docker/singularity/.../institute>
     --input <SAMPLESHEET> \
     --outdir <OUTDIR> \
     --reference <REFERENCE FASTA> \
-    --platform <illumina||nanopore> \
-    -profile <docker/singularity/.../institute>
+    --platform illumina \
 ```
 
 ### Nanopore
@@ -122,8 +122,8 @@ nextflow run phac-nml/measeq \
     --input <SAMPLESHEET> \
     --outdir <OUTDIR> \
     --reference <REFERENCE FASTA> \
-    --platform <illumina||nanopore> \
-    --model <MODEL> \
+    --platform nanopore \
+    --model <CLAIR3_MODEL> \
     -profile <docker/singularity/institute/etc>
 ```
 
@@ -148,7 +148,24 @@ To properly pair the primers, make sure that the names match up until the `_LEFT
 - `_FORWARD` and `_REVERSE`
 - `_F` and `_R`
 
-_Note_: The first line is just to display what each line expects and should not be included when creating a primer bed file
+_Note_: The first line in the example file is just to display what each line expects and should not be included when creating a primer bed file
+
+### DSIds
+
+[Measles Nucleotide Surveillance database](https://who-gmrln.org/means2) (MeaNS) is a global resource for measles virus genetic sequences. It is maintained by the WHO and is crucial for tracking the genetic diversity and spread of measles viruses. N450 sequences can be submitted to the database to generate a distinct sequence identifier (DSId) for each unique sequence.
+
+There is no way to query the current database so a multifasta file with DSId calls is required to match them up locally. If a match is found, the matching DSId is assigned! If no match is found, the distinct sequence is given a `Novel-<MD5 HASH>` (first 5 characters for now) identifier so that it can be submitted to the database. To do this, use the parameter `--dsid_fasta <FASTA>`. The fasta file would look as such:
+
+**dsid_fasta**
+
+```
+>1931 D8
+GTCAGTTCCACATTGGCATCTGAACTCG
+> 2001 D8
+GTCAGTTCCACATTGGCATCAGAACTCG
+> 2418 B3
+GTCAGTTCCACAGTGGCATCTGAACTCG
+```
 
 ### More Run Options
 
@@ -159,12 +176,12 @@ For more detailed running options including adding metadata, adjusting parameter
 
 ### Testing
 
-To test the `MeaSeq` pipeline, and that everything works on your system, a small set of D8 genotype samples have been included from [SRA BioProject PRJNA480551](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA480551) in the [`test_data/fastqs`](test_dataset/fastqs/) directory.
+To test the `MeaSeq` pipeline, and that everything works on your system, a small set of illumina D8 genotype samples have been included from [SRA BioProject PRJNA480551](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA480551) in the [`test_data/fastqs`](test_dataset/fastqs/) directory.
 
 To run the pipeline on these samples run the following command:
 
 ```bash
-nextflow run phac-nml/measeq -profile test,<docker/singularity/institute/etc>
+nextflow run phac-nml/measeq -profile test_illumina,<docker/singularity/institute/etc>
 ```
 
 ## Outputs
@@ -232,8 +249,6 @@ More detailed steps are available in the [output docs](./docs/output.md)
    1. Samtools mpileup
    2. Pysamstats
    3. Rmarkdown
-
-To come
 
 ## Troubleshooting
 

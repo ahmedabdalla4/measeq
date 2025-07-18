@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft-07/schema",
-    "$id": "https://raw.githubusercontent.com/phac-nml/measeq/master/nextflow_schema.json",
+    "$id": "https://raw.githubusercontent.com/phac-nml/measeq/main/nextflow_schema.json",
     "title": "phac-nml/measeq pipeline parameters",
     "description": "Measles sequencing and analysis",
     "type": "object",
