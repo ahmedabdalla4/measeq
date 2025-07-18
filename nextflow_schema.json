@@ -170,16 +170,21 @@
             "properties": {
                 "nextclade_dataset_name": {
                     "type": "string",
+                    "enum": ["nextstrain/measles/N450/WHO-2012"],
                     "default": "nextstrain/measles/N450/WHO-2012",
                     "description": "Name of the nextclade dataset to use. Shouldn't be changed unless needed"
                 },
                 "nextclade_dataset_tag": {
                     "type": "string",
+                    "enum": ["2025-03-26--11-47-13Z"],
                     "default": "2025-03-26--11-47-13Z",
                     "description": "Tag for the nextclade dataset to use. Shouldn't be changed unless needed"
                 },
                 "custom_nextclade_dataset": {
                     "type": "string",
+                    "pattern": "^\\S+$",
+                    "exists": true,
+                    "format": "directory-path",
                     "default": "assets/custom_measles_nextclade_dataset",
                     "description": "Path to custom simple whole-genome measles nextclade dataset to use for QC and CDS validation"
                 }

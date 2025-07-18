@@ -69,7 +69,7 @@ def process_variants_details(var, annotated: bool, variants_analyzed=[]) -> dict
             'info': info,
             'depth': int(var.samples[0].data.DP),
             'vaf': round(var.samples[0].data.AF[0], 4),
-            'tag': 'consensus'
+            'tag': 'Consensus'
         }
         return out
 
@@ -88,7 +88,7 @@ def process_variants_details(var, annotated: bool, variants_analyzed=[]) -> dict
             'info': info,
             'depth': int(var.samples[0].data.DP),
             'vaf': round(var.samples[0].data.AF[0]),
-            'tag': 'consensus'
+            'tag': 'Consensus'
         }
         return out
     ann_list = var_ann[0].split('|')
@@ -113,7 +113,7 @@ def process_variants_details(var, annotated: bool, variants_analyzed=[]) -> dict
         'info': info,
         'depth': int(var.samples[0].data.DP),
         'vaf': round(var.samples[0].data.AF[0]),
-        'tag': 'consensus'
+        'tag': 'Consensus'
     }
     return out
 

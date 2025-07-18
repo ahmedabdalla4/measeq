@@ -8,6 +8,7 @@
 - [Usage](#usage)
   - [Illumina](#illumina)
   - [Nanopore](#nanopore)
+    - [Clair3 Models](#clair3-models)
   - [Amplicon and Primer Files](#amplicon-and-primer-files)
   - [DSIds](#dsids)
   - [More Run Options](#more-run-options)
@@ -29,7 +30,7 @@
 - Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
 - Dependency management fully available with `Docker`, `Singularity`, and `Conda`
 - Can assign DSIds from reference multi-fasta file and give new N450s a `Novel-hash` label
-   - With `--dsid_fasta <FASTA>`
+  - With `--dsid_fasta <FASTA>`
 
 ## Introduction
 
@@ -127,6 +128,14 @@ nextflow run phac-nml/measeq \
     -profile <docker/singularity/institute/etc>
 ```
 
+#### Clair3 Models
+
+The Nanopore pipeline utilizes [Clair3](https://github.com/HKU-BAL/Clair3) to call nanopore variants which requires a model that should be picked based off of the flowcell, pore, translocation speed, and basecalling model.
+
+Some models are built into clair3 and some need to be downloaded. The [pre-trained clair3](https://github.com/HKU-BAL/Clair3?tab=readme-ov-file#pre-trained-models) models are able to be automatically downloaded when running the pipeline using [`artic get_models`](https://github.com/artic-network/fieldbioinformatics/blob/master/artic/get_models.py) and can be specified as a parameter with `--model <MODEL>`.
+
+Additional or local models can also be used, you just have to provide a path to them and use the `--local_model <PATH>` parameter instead
+
 ### Amplicon and Primer Files
 
 _Both_ Illumina and Nanopore support running amplicon data using a primer scheme file. To run amplicon data all you need is a primer bed file where the primers have been mapped to the location in the reference genome used. The parameter being `--primer_bed <PRIMER_BED>`. An example primer bed file looks as such:
@@ -152,7 +161,7 @@ _Note_: The first line in the example file is just to display what each line exp
 
 ### DSIds
 
-[Measles Nucleotide Surveillance database](https://who-gmrln.org/means2) (MeaNS) is a global resource for measles virus genetic sequences. It is maintained by the WHO and is crucial for tracking the genetic diversity and spread of measles viruses. N450 sequences can be submitted to the database to generate a distinct sequence identifier (DSId) for each unique sequence.
+While 24 MeV genotypes were initially identified, only 2 have been detected since 2021: B3 and D8. Due to this, the Distinct Sequence Identifier (DSId) system was created to designate a unique 4-digit identifier based on the precise N450 sequence as a sub-genotype nomenclature. The [Measles Nucleotide Surveillance database](https://who-gmrln.org/means2) (MeaNS) is the global resource for these measles virus genetic sequences that is maintained by the WHO. N450 sequences can be submitted to the database to generate a distinct sequence identifier (DSId) for each unique sequence.
 
 There is no way to query the current database so a multifasta file with DSId calls is required to match them up locally. If a match is found, the matching DSId is assigned! If no match is found, the distinct sequence is given a `Novel-<MD5 HASH>` (first 5 characters for now) identifier so that it can be submitted to the database. To do this, use the parameter `--dsid_fasta <FASTA>`. The fasta file would look as such:
 

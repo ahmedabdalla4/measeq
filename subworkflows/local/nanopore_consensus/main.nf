@@ -92,6 +92,7 @@ workflow NANOPORE_CONSENSUS {
         )
         ch_versions = ch_versions.mix(ARTIC_ALIGN_TRIM.out.versions.first())
         ch_trimmed_bams_w_pool = ARTIC_ALIGN_TRIM.out.bam.combine(ch_split_amp_pools_bed)
+        ch_bam = ARTIC_ALIGN_TRIM.out.bam
 
         //
         // MODULE: Clair3 with pools
@@ -124,7 +125,7 @@ workflow NANOPORE_CONSENSUS {
         // MODULE: Make depth mask based on minimum depth to call position
         //
         ARTIC_MAKE_DEPTH_MASK(
-            ARTIC_ALIGN_TRIM.out.bam,
+            ch_bam,
             ch_reference
         )
         ch_versions = ch_versions.mix(ARTIC_MAKE_DEPTH_MASK.out.versions.first())
@@ -155,7 +156,7 @@ workflow NANOPORE_CONSENSUS {
         )
         ch_versions = ch_versions.mix(CUSTOM_MAKE_DEPTH_MASK.out.versions.first())
         ch_depth_mask = CUSTOM_MAKE_DEPTH_MASK.out.coverage_mask
-
+        ch_bam = MINIMAP2_ALIGN.out.bam_bai
     }
 
     //
@@ -167,7 +168,7 @@ workflow NANOPORE_CONSENSUS {
     ch_versions = ch_versions.mix(CUSTOM_VCF_FILTER.out.versions.first())
 
     //
-    // MODULE: Masl failing regions
+    // MODULE: Mask failing regions
     //
     ARTIC_MASK(
         ch_depth_mask.join(CUSTOM_VCF_FILTER.out.fail_vcf, by: [0]),
@@ -216,7 +217,7 @@ workflow NANOPORE_CONSENSUS {
     emit:
     nanoq_json   = NANOQ.out.stats
     consensus    = ADJUST_FASTA_HEADER.out.consensus
-    bam_bai      = ARTIC_ALIGN_TRIM.out.bam
+    bam_bai      = ch_bam
     vcf          = BCFTOOLS_NORM.out.vcf
     variants_tsv = VCF_TO_TSV.out.tsv
     versions     = ch_versions

@@ -278,6 +278,7 @@ def main():
 
             # Write a tag describing what to do with the variant
             consensus_tag = "None"
+            consensus_base = out_r.alts[0]
             genotype = (1,)
 
             # high-frequency subs and indels are always applied without ambiguity
@@ -285,17 +286,16 @@ def main():
             if vaf > args.upper_ambiguity_frequency or is_indel:
                 # always apply these to the consensus
                 consensus_tag = "consensus"
-
-                # To capture IUPACs in reports easier have a separate column
-                consensus_base = out_r.alts[0]
+                tsv_tag = "Consensus"
             else:
                 # To capture IUPACs in reports easier have a separate column
-                consensus_base = get_base_code(out_tuple[1], args.upper_ambiguity_frequency)
+                iupac_base = get_base_code(out_tuple[1], args.upper_ambiguity_frequency)
 
                 # Record ambiguous SNPs in the consensus sequence with IUPAC codes
                 consensus_tag = "ambiguous"
+                tsv_tag = f"Ambiguous - {iupac_base}"
                 # Genotype needs to be mixed to get an iupac if that is what the base should be
-                if consensus_base not in ['A', 'T', 'G', 'C']:
+                if iupac_base not in ['A', 'T', 'G', 'C']:
                     genotype = (0,1)
 
             # Output for consensus generation and reporting
@@ -314,7 +314,7 @@ def main():
                 int(out_r.qual),
                 depth,
                 vaf,
-                consensus_tag
+                tsv_tag
             ])
 
             accept_variant = True

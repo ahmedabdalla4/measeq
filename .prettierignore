@@ -9,3 +9,4 @@ testing*
 *.pyc
 bin/
 test_data/
+docs/images/

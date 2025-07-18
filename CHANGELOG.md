@@ -3,6 +3,33 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## v0.3.0 - [2025-07-18]
+
+### `Added`
+
+- CI tests and Linting
+- Providence to final `Measeq_Report.html` file
+- Approximate genome position annotation to final report figures
+- nf-validation to work with IRIDA Next
+- nf-iridanext to work with IRIDA Next
+- nf-prov to allow some more providence options
+- Hashes to novel DSId calls so that in the same run new DSIds will match
+  - And they will match in other locations as well
+
+### `Adjusted`
+
+- Output directories for Nanopore process in the `modules.config` file
+- Updated `artic` version from `1.6.2` --> `1.7.4` for nanopore pipeline
+- Ambiguous position handling for illumina data
+  - Specifically for rare postions where there was a low-supported INDEL along with a SNP
+- Negative control default string to add in 'en'
+- Samtools depth `meta1` to `meta` as it was breaking the IRIDA-Next plugin
+- Minimum nextflow version required to `24.10.0`
+
+### `Removed`
+
+- nf-schema and associated workflows
+
 ## v0.2.1 - [2025-06-12]
 
 ### `Added`
