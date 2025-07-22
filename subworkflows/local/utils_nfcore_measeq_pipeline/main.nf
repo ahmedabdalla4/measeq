@@ -72,6 +72,13 @@ workflow PIPELINE_INITIALISATION {
         .fromSamplesheet("input")
         .map {
             meta, fastq_1, fastq_2 ->
+                // Meta ID assignment
+                if (!meta.id) {
+                    meta.id = meta.irida_id
+                } else {
+                    meta.id = meta.id.replaceAll(/[^A-Za-z0-9_.\-]/, '_')
+                }
+                // File assignment
                 if (!fastq_2) {
                     return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
                 } else {
