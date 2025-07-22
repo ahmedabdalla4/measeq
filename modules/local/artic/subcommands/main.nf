@@ -321,6 +321,8 @@ process ADJUST_FASTA_HEADER {
     label 'process_single'
     tag "$meta.id"
 
+    container "biocontainers/coreutils:8.31--h14c3975_0"
+
     input:
     tuple val(meta), path(consensus)
     tuple val(meta2), path(reference)
