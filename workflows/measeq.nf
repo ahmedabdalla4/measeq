@@ -34,7 +34,7 @@ workflow MEASEQ {
     ch_multiqc_files = Channel.empty()
     ch_metadata = params.metadata ? file(params.metadata, type: 'file', checkIfExists: true) : []
     Channel
-        .value(file(params.custom_nextclade_dataset, type: 'dir', checkIfExists: true))
+        .value(file("$projectDir/assets/custom_measles_nextclade_dataset", type: 'dir', checkIfExists: true))
         .set { ch_custom_nextclade_dataset }
     ch_id_fasta = params.dsid_fasta ? file(params.dsid_fasta, type: 'file', checkIfExists: true) : []
 
