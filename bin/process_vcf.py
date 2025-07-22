@@ -117,7 +117,7 @@ def handle_indel(vcf_header, record):
     # apply the most frequent ALT. This is because there is evidence for /an/ indel but it is
     # ambiguous which one. We can't represent ambiguous indels in a consensus fasta so this
     # is the best we can do.
-    if sum(vafs) < 0.5:
+    if sum(vafs) < 0.6:
         return output
 
     # argmax without bringing in numpy
