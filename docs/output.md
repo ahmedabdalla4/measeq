@@ -29,7 +29,7 @@ The pipeline is built using Nextflow and processes data using the following step
   - [BWAMem2](#bwamem2) - Map to the provided measles reference
   - [iVar Trim](#ivar-trim) - Amplicon only, trim the BAM file by primer position
   - [Freebayes](#freebayes) - Call variants from the BAM file
-  - [Process VCF](#process-vcf) - Process the variants called from the BAM file
+  - [Process VCF](#process-vcf) - Process the variants called from the BAM file using python script and `bcftools norm`
   - [Make Depth Mask](#make-depth-mask) - Determine sites below the minimum depth to mask as Ns
   - [BCFTools Consensus](#bcftools-consensus) - Generate final sample consensus sequence
 
@@ -43,17 +43,18 @@ The pipeline is built using Nextflow and processes data using the following step
   - [Clair3](#clair3) - Call variants from BAM file, if amplicon call variants by amplicon pool
   - [Artic VCF Merge](#artic-vcf-merge) - Amplicon only, merge the pooled VCF files
   - [Make Depth Mask](#make-depth-mask-1) - Determine sites below the minimum depth to mask as Ns
-  - [VCF Filter](#vcf-filter) - Filter clair3 variants
+  - [VCF Filter](#vcf-filter) - Filter clair3 variants that don't meet required thresholds
   - [BCFTools Norm](#bcftools-norm) - Normalize variants
   - [BCFTools Consensus](#bcftools-consensus-1) - Generate final sample consensus sequence
+  - [VCF to TSV](#vcf-to-tsv) - Generate a TSV file based on the VCF to feed into final report
 
 - [Quality Control](#quality-control)
 
   - [Nextclade](#nextclade) - Run nextclade on N450 dataset to get genotype and the custom dataset to get frameshift and nonsense mutations
   - [Samtools Depth](#samtools-depth) - Calculate and summarize per-position depth
   - [Compare DSId](#compare-dsid) - Compare sample N450 to DSId fasta N450 to type sample
-  - [Make Sample QC](#make-sample-qc) - Concatenate relevant sample-specific files for QC evaluation
-  - [Make Final QC](#make-final-qc) - Concatenate all sample QC and check controls for final run evaluation
+  - [Make Sample QC](#make-sample-qc) - Concatenate relevant sample-specific files for QC evaluation and determine QC result
+  - [Make Final QC](#make-final-qc) - Concatenate all sample QC and check controls for a final run evaluation
 
 - [Amplicon Stats Workflow](#amplicon-stats-workflow)
 
@@ -65,6 +66,8 @@ The pipeline is built using Nextflow and processes data using the following step
 - [Reporting Workflow](#reporting-workflow)
   - [Pysamstats](#pysamstats) - Calculate positional base quality
   - [Positional N Depth](#positional-n-depth) - Calculate positional N depth with samtools mpileup
+  - [Sample Positional Variation](#sample-variation) - Report positions containing more that 15% variation from the reference call
+  - [Software Version Tracking](#software-version-tracking) - Summarize each step's software version to include in final report and as output file
   - [Generate Final Report](#generate-final-report) - Generate final report
 
 ### Setup
@@ -197,10 +200,9 @@ Using the N450 dataset, the input reference is typed so that the N450 region can
 
 - `vcf/processed_vcf/`
   - `<SAMPLE>.consensus.norm.vcf.gz`: Consensus BCFTools normalized variants to be applied to the consensus sequence
-  - `<SAMPLE>.consensus.norm.vcf.gz.tbi`: Index of Passing BCFTools normalized variants to be applied to the consensus sequence
   - `<SAMPLE>.ambiguous.norm.vcf.gz`: Intermediate BCFTools normalized variants to be applied as IUPAC bases to the consensus sequence
-  - `<SAMPLE>.ambiguous.norm.vcf.gz.tbi`: Index of Intermediate BCFTools normalized variants to be applied as IUPAC bases to the consensus sequence
-  - `<SAMPLE>.variants.vcf`: All filter-passing variants
+  - `<SAMPLE>.processed.norm.vcf.gz`: All filter-passing variants tagged with what type of variant they are
+  - `<SAMPLE>.consensus.tsv`: All filter-passing variants in TSV format for use in final reporting script
 
 </details>
 
@@ -232,31 +234,132 @@ BCFTools consensus is used to first apply only the IUPAC variants to the sequenc
 
 ### Nanopore Processing
 
-More detailed information to come
+Steps specific to nanopore processing and variant calling
 
 #### Artic Get Models
 
+<details markdown="1">
+<summary>Output files</summary>
+
+- `reference/clair3_models/`
+  - `<MODEL>`: Directory containing files needed for the wanted clair3 model
+
+</details>
+
+Download and store clair3 model specified with `--model`
+
 #### NanoQ
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `nanoq/`
+  - `<SAMPLE>_filtered.fastq`: Final fastq filtered to remove failing reads
+  - `<SAMPLE>_filtered.stats`: Final read stats
+
+</details>
 
 #### Minimap2
 
+<details markdown="1">
+<summary>Output files</summary>
+
+- `bam/minimap2`
+  - `<SAMPLE>.sorted.bam`: Sorted alignments file of reads mapped to given reference
+  - `<SAMPLE>.sorted.bam.bai`: Index of the sorted alignments file
+
+</details>
+
 #### Artic Align Trim
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `bam/artic`
+  - `<SAMPLE>.amplicon_depths.tsv`: TSV with mean depth for each amplicon calculated
+  - `<SAMPLE>.primertrimmed.rg.sorted.bam`: Amplicon primertrimmed and sorted alignments file of reads mapped to given reference
+  - `<SAMPLE>.primertrimmed.rg.sorted.bam.bai`: Index of the primertrimmed sorted alignments file
+
+</details>
 
 #### Clair3
 
+<details markdown="1">
+<summary>Output files</summary>
+
+- `vcf/clair3`
+  - `<SAMPLE>.<POOL>.vcf`: Called variants file for each amplicon pool generated by clair3
+
+</details>
+
 #### Artic VCF Merge
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `vcf/artic`
+  - `<SAMPLE>.merged.vcf`: Variants file created by merging the split clair3 variants files
+
+</details>
 
 #### Make Depth Mask
 
+<details markdown="1">
+<summary>Output files</summary>
+
+- `mask/`
+  - `<SAMPLE>.coverage_mask.txt`: Coordinates of the locations to mask where the depth is less than required to call a base
+
+</details>
+
+Mask locations where there is not enough information to call a base using a minimum threshold and the BAM file.
+
 #### VCF Filter
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `vcf/artic`
+  - `<SAMPLE>.fail.vcf`: Merged variants failing the variant filters
+  - `<SAMPLE>.pass.vcf.gz`: Merged variants passing the variant filters
+  - `<SAMPLE>.pass.vcf.gz.tbi`: Index of passing variants
+
+</details>
 
 #### BCFTools Norm
 
+<details markdown="1">
+<summary>Output files</summary>
+
+- `vcf/final`
+  - `<SAMPLE>.pass.norm.vcf.gz`: Normalized merged variants passing the variant filters
+  - `<SAMPLE>.pass.norm.vcf.gz.tbi`: Index of variants
+
+</details>
+
 #### BCFTools Consensus
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `consensus
+  - `<SAMPLE>.consensus.fasta`: Final sample consensus sequence with passing consensus variants applied along with the masked sites
+
+</details>
+
+#### VCF to TSV
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `vcf/final`
+  - `<SAMPLE>.consensus.tsv`:
+
+</details>
 
 ### Quality Control
 
-Quality control modules
+Quality control modules and reporting
 
 #### Nextclade
 
@@ -394,13 +497,13 @@ MultiQC report specifically focusing on how well and how deep each amplicon was 
 
 Using samtools mpileup and awk, summarize how many Ns were seen at each position in the pileup to find any sites that have a lot of Ns
 
-### Sample Variation
+#### Sample Variation
 
 <details markdown="1">
 <summary>Output files</summary>
 
-- `results_measeq/all_variation_positions/`
-  - `*_variation.csv`: Sample specific genome positions with base variation
+- `reporting/sample_variation/`
+  - `*_variation.csv`: Sample specific genomic positions with variation above 15% from the locations reference basecall
 
 </details>
 
@@ -408,9 +511,19 @@ The base variation check is a Python script that parses the BAM file for each sa
 
 ![](images/variation.png)
 
-#### Generate Final Report
+#### Software Version Tracking
 
-details markdown="1">
+<details markdown="1">
+<summary>Output files</summary>
+
+- `pipeline_info/`
+  - `measeq_software_mqc_versions.yml`: Yaml file tracking the software versions for each step of the pipeline
+
+</details>
+
+Tracking of the software versions used in each step of the pipeline
+
+#### Generate Final Report
 
 <details markdown="1">
 <summary>Output files</summary>
@@ -445,9 +558,9 @@ OUTDIR
 |      ├── SAMPLE.primertrimmed.sorted.bam
 |      └── SAMPLE.primertrimmed.sorted.bam.bai
 ├── consensus
-|   ├── SAMPLE.N450.cfasta
+|   ├── SAMPLE.N450.fasta
 |   └── SAMPLE.consensus.fasta
-├── fastp (illumina only)
+├── fastp
 |   ├── SAMPLE_1.fastp.fastq.gz
 |   ├── SAMPLE_2.fastp.fastq.gz
 |   ├── SAMPLE.fastp.json
@@ -456,6 +569,7 @@ OUTDIR
 ├── fastqc
 |   ├── SAMPLE_fastqc.html
 |   └── SAMPLE_fastqc.zip
+├── iridanext.output.json.gz
 ├── mask
 |   └── SAMPLE.mask.txt
 ├──  MeaSeq_Report.html
@@ -486,8 +600,10 @@ OUTDIR
 |   ├── positional_depth
 |   ├── positional_n
 |   ├── positional_quality
-|   └── sample_csv
-|       └── SAMPLE.qc.csv
+|   ├── sample_csv
+|   |   └── SAMPLE.qc.csv
+|   └── sample_variation
+|       └── SAMPLE_variation.csv
 └── vcf
     ├── freebayes
     |   └── SAMPLE.vcf
@@ -496,9 +612,78 @@ OUTDIR
         ├── SAMPLE.ambiguous.norm.vcf.gz.tbi
         ├── SAMPLE.consensus.norm.vcf.gz
         ├── SAMPLE.consensus.norm.vcf.gz.tbi
-        └── SAMPLE.variants.vcf
+        ├── SAMPLE.processed.norm.vcf.gz
+        ├── SAMPLE.processed.norm.vcf.gz.tbi
+        └── SAMPLE.consensus.tsv
 ```
 
 ### Nanopore
 
-To Add
+```
+OUTDIR
+├── Amplicon_Report.html (if amplicons)
+├── bam
+|  ├── artic (if amplicons)
+|  |   ├── SAMPLE.amplicon_depths.tsv
+|  |   ├── SAMPLE.primertrimmed.rg.sorted.bam
+|  |   └── SAMPLE.primertrimmed.rg.sorted.bam.bai
+|  └── minimap2
+|      ├── SAMPLE.sorted.bam
+|      └── SAMPLE.sorted.bam.bai
+├── consensus
+|   ├── SAMPLE.N450.fasta
+|   └── SAMPLE.consensus.fasta
+├── fastqc
+|   ├── SAMPLE_fastqc.html
+|   └── SAMPLE_fastqc.zip
+├── iridanext.output.json.gz
+├── mask
+|   └── SAMPLE.mask.txt
+├──  MeaSeq_Report.html
+├── nanoq
+|   ├── SAMPLE_filtered.fastq
+|   └── SAMPLE_filtered.stats
+├── nextclade
+|   ├── SAMPLE-N450*
+|   └── SAMPLE-WG*
+├── overall.qc.csv
+├── pipeline_info
+|   ├── execution_report.html
+|   ├── execution_timeline.html
+|   ├── execution_trace.txt
+|   ├── measeq_software_mqc_versions.yml
+|   ├── params.json
+|   └── pipeline_dag.html
+├── reference
+|   ├── amplicon.bed
+|   ├── amplicon_regions
+|   |   ├── 1.bed
+|   |   ├── 2.bed
+|   |   └── etc
+|   ├── clair3_models
+|   |   └── <DOWNLOADED MODELS>
+|   ├── genome.bed
+|   └── refstats.txt
+├── reporting
+|   ├── amplicon (if amplicon)
+|   |   └── <INTERMEDIATE AMPLICON FILES>
+|   ├── positional_depth
+|   ├── positional_n
+|   ├── positional_quality
+|   ├── sample_csv
+|   |   └── SAMPLE.qc.csv
+|   └── sample_variation
+|       └── SAMPLE_variation.csv
+└── vcf
+    ├── artic
+    |   ├── SAMPLE.fail.vcf
+    |   ├── SAMPLE.merged.vcf
+    |   ├── SAMPLE.pass.vcf.gz
+    |   └── SAMPLE.pass.vcf.gz.tbi
+    ├── clair3
+    |   └── SAMPLE.POOL.vcf
+    └── final
+        ├── SAMPLE.consensus.tsv
+        ├── SAMPLE.pass.norm.vcf.gz
+        └── SAMPLE.pass.norm.vcf.gz.tbi
+```
