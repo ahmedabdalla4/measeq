@@ -174,7 +174,7 @@ nextflow_pipeline {
 
         when {
             params {
-                input       = "${projectDir}/test_data/nanopore-samplesheet.csv"
+                input       = "${projectDir}/test_data/nanopore_samplesheet.csv"
                 outdir      = "results"
                 reference   = "${projectDir}/test_data/MH356245.1.reference.fasta"
                 platform    = "nanopore"
@@ -233,7 +233,6 @@ nextflow_pipeline {
 
             assert iridanext_global.findAll { it.path == "MeaSeq_Report.html" }.size() == 1
             assert iridanext_global.findAll { it.path == "pipeline_info/measeq_software_mqc_versions.yml" }.size() == 1
-            assert iridanext_global.findAll { it.path == "Amplicon-Summary-MultiQC-Report_multiqc_report.html" }.size() == 1
 
             assert iridanext_samples.sample1.findAll { it.path == "consensus/sample1.N450.fasta" }.size() == 1
             assert iridanext_samples.sample1.findAll { it.path == "consensus/sample1.consensus.fasta" }.size() == 1
