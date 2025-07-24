@@ -33,6 +33,7 @@ process PROCESS_VCF {
         -d ${params.min_depth} \\
         -l ${params.min_ambiguity_threshold} \\
         -u ${params.max_ambiguity_threshold} \\
+        -m ${params.min_indel_threshold} \\
         -q 20 \\
         -c ${meta.id}.processed.vcf \\
         -v ${meta.id}.variants.vcf \\

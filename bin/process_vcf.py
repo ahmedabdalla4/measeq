@@ -104,7 +104,7 @@ def handle_sub(vcf_header, record):
         output.append((r, base_frequency[i]))
     return output
 
-def handle_indel(vcf_header, record):
+def handle_indel(vcf_header, record, min_indel_threshold):
     '''
     Process indel variants found by freebayes into a variant that should be
     applied to the consensus sequence
@@ -117,7 +117,7 @@ def handle_indel(vcf_header, record):
     # apply the most frequent ALT. This is because there is evidence for /an/ indel but it is
     # ambiguous which one. We can't represent ambiguous indels in a consensus fasta so this
     # is the best we can do.
-    if sum(vafs) < 0.6:
+    if sum(vafs) <= min_indel_threshold:
         return output
 
     # argmax without bringing in numpy
@@ -179,6 +179,9 @@ def main():
     parser.add_argument('-u', '--upper-ambiguity-frequency', type=float, default=0.75,
             help=f"Substitution variants with frequency less than -u will be encoded with IUPAC ambiguity codes")
 
+    parser.add_argument('-m', '--minimum-indel-threshold', type=float, default=0.60,
+            help=f"Indel variants with frequency less than the -m threshold will be skipped")
+
     parser.add_argument('-q', '--min-quality', type=int, default=20,
             help=f"Minimum quality to call a variant")
 
@@ -235,7 +238,7 @@ def main():
         out_records = list()
         if has_indel:
             # indels need to be handle specially as we can't apply ambiguity codes
-            out_records = handle_indel(out_header, record)
+            out_records = handle_indel(out_header, record, args.minimum_indel_threshold)
         else:
             out_records = handle_sub(out_header, record)
 

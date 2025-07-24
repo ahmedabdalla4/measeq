@@ -13,7 +13,6 @@
                 "meta": ["irida_id"]
             },
             "sample_name": {
-                "pattern": "^\\S+$",
                 "errorMessage": "Optional value used to override sample when used in tools like IRIDA-Next",
                 "meta": ["id"]
             },

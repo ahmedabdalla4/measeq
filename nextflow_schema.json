@@ -69,9 +69,9 @@
             "fa_icon": "fas fa-vials"
         },
         "illumina_options": {
-            "title": "Illumina options",
+            "title": "Illumina variant calling thresholds",
             "type": "object",
-            "description": "Options specific to Illumina data",
+            "description": "Options specific to Illumina variant calling thresholds",
             "default": "",
             "properties": {
                 "min_ambiguity_threshold": {
@@ -85,6 +85,12 @@
                     "description": "Maximum threshold to call a position as an IUPAC",
                     "default": 0.75,
                     "fa_icon": "far fa-plus-square"
+                },
+                "min_indel_threshold": {
+                    "type": "number",
+                    "description": "Minimum thresholds to keep an indel",
+                    "default": 0.6,
+                    "fa_icon": "far fa-minus-square"
                 }
             }
         },
@@ -152,6 +158,7 @@
                 },
                 "neg_ctrl_substrings": {
                     "type": "string",
+                    "pattern": "^\\S+$",
                     "default": "neg,ntc,blank,en",
                     "description": "Substrings to match to sample names to identify negative controls. Separated by a ,"
                 },
