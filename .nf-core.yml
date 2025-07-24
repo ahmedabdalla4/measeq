@@ -11,6 +11,7 @@ lint:
     - .github/.dockstore.yml
     - conf/igenomes.config
     - conf/igenomes_ignored.config
+    - conf/test.config
     - conf/test_full.config
     - assets/email_template.txt
     - assets/email_template.html
