@@ -286,7 +286,7 @@ def parse_vcf(vcf_file: Path) -> Tuple[str, list, str, dict]:
             # For IUPACs make sure that the info column exists and is ambiguous
             #  This is just for Illumina, no Nanopore ambiguous at the moment
             iupac = False
-            if (record.INFO["ConsensusTag"]) and (record.INFO["ConsensusTag"] == 'ambiguous'):
+            if ("ConsensusTag" in record.INFO) and (record.INFO["ConsensusTag"] == 'ambiguous'):
                 iupac = True
                 alt_str = record.INFO["ConsensusBase"]
             variant = f'{record.REF}{record.POS}{alt_str}'

@@ -48,6 +48,7 @@ workflow ILLUMINA_CONSENSUS {
         '',
         ''
     )
+    ch_versions = ch_versions.mix(FASTP.out.versions)
 
     //
     // MODULE: Create BWAMEM index of reference
@@ -55,6 +56,7 @@ workflow ILLUMINA_CONSENSUS {
     BWAMEM2_INDEX(
         ch_reference
     )
+    ch_versions = ch_versions.mix(BWAMEM2_INDEX.out.versions)
 
     //
     // MODULE: Run BWAMEM to map to reference
@@ -65,6 +67,7 @@ workflow ILLUMINA_CONSENSUS {
         ch_reference,
         'sort'
     )
+    ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions)
 
     //
     // MODULE: Index output bam file from BWA
@@ -73,6 +76,7 @@ workflow ILLUMINA_CONSENSUS {
         BWAMEM2_MEM.out.bam
     )
     ch_bam_bai = BWAMEM2_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0])
+    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
 
     //
     // PROCESS: if we have amplicon data, want to make sure that the primers are not affecting
@@ -85,6 +89,7 @@ workflow ILLUMINA_CONSENSUS {
             ch_primer_bed
         )
         ch_bam_bai = IVAR_TRIM.out.bam
+        ch_versions = ch_versions.mix(IVAR_TRIM.out.versions)
     }
 
     //
@@ -94,6 +99,7 @@ workflow ILLUMINA_CONSENSUS {
         ch_bam_bai,
         ch_reference
     )
+    ch_versions = ch_versions.mix(FREEBAYES.out.versions)
 
     //
     // MODULE: Process freebayes variant calls with custom python script and bcftools norm
@@ -102,6 +108,7 @@ workflow ILLUMINA_CONSENSUS {
         FREEBAYES.out.vcf,
         ch_reference
     )
+    ch_versions = ch_versions.mix(PROCESS_VCF.out.versions)
 
     // For some reason it did not want to let me join the [] alone to the new channel for the next steps
     //  So we've done it this way and that works
@@ -117,6 +124,7 @@ workflow ILLUMINA_CONSENSUS {
         ch_bam_bai,
         ch_reference
     )
+    ch_versions = ch_versions.mix(CUSTOM_MAKE_DEPTH_MASK.out.versions)
 
     //
     // MODULE: Create intermediate fasta file with IUPACs for ambiguous positions from freebayes
@@ -124,6 +132,7 @@ workflow ILLUMINA_CONSENSUS {
     BCFTOOLS_CONSENSUS_AMBIGUOUS(
         ch_ambiguous_vcf_restructured
     )
+    ch_versions = ch_versions.mix(BCFTOOLS_CONSENSUS_AMBIGUOUS.out.versions)
 
     //
     // MODULE: Create final consensus sequence with all variants
@@ -133,6 +142,7 @@ workflow ILLUMINA_CONSENSUS {
             .join(BCFTOOLS_CONSENSUS_AMBIGUOUS.out.fasta, by: [0])
             .join(CUSTOM_MAKE_DEPTH_MASK.out.coverage_mask, by: [0])
     )
+    ch_versions = ch_versions.mix(BCFTOOLS_CONSENSUS_FINAL.out.versions)
 
     //
     // MODULE: Adjust final consensus sequence headers to make downstream processes easier
@@ -143,6 +153,7 @@ workflow ILLUMINA_CONSENSUS {
         '.consensus',
         ''
     )
+    ch_versions = ch_versions.mix(ADJUST_FASTA_HEADER.out.versions)
 
     emit:
     fastp_json   = FASTP.out.json

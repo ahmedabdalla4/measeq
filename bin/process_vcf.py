@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # Written by @jts from https://github.com/jts/ncov2019-artic-nf/blob/be26baedcc6876a798a599071bb25e0973261861/bin/process_gvcf.py
-# Slight adjustments made such that were focused on just the mutations and not the GVCF info
+
+# Adjustments made such that were focused on just the mutations and not the GVCF info
 #  Along with that, added in genotype to allow new versions of bcftools consensus to work
+#  And adjusting how Del+Snp complex sites are handled
 
 import argparse
 import pysam
@@ -102,7 +104,7 @@ def handle_sub(vcf_header, record):
         output.append((r, base_frequency[i]))
     return output
 
-def handle_indel(vcf_header, record):
+def handle_indel(vcf_header, record, min_indel_threshold):
     '''
     Process indel variants found by freebayes into a variant that should be
     applied to the consensus sequence
@@ -115,7 +117,7 @@ def handle_indel(vcf_header, record):
     # apply the most frequent ALT. This is because there is evidence for /an/ indel but it is
     # ambiguous which one. We can't represent ambiguous indels in a consensus fasta so this
     # is the best we can do.
-    if sum(vafs) < 0.5:
+    if sum(vafs) <= min_indel_threshold:
         return output
 
     # argmax without bringing in numpy
@@ -177,6 +179,9 @@ def main():
     parser.add_argument('-u', '--upper-ambiguity-frequency', type=float, default=0.75,
             help=f"Substitution variants with frequency less than -u will be encoded with IUPAC ambiguity codes")
 
+    parser.add_argument('-m', '--minimum-indel-threshold', type=float, default=0.60,
+            help=f"Indel variants with frequency less than the -m threshold will be skipped")
+
     parser.add_argument('-q', '--min-quality', type=int, default=20,
             help=f"Minimum quality to call a variant")
 
@@ -233,7 +238,7 @@ def main():
         out_records = list()
         if has_indel:
             # indels need to be handle specially as we can't apply ambiguity codes
-            out_records = handle_indel(out_header, record)
+            out_records = handle_indel(out_header, record, args.minimum_indel_threshold)
         else:
             out_records = handle_sub(out_header, record)
 
@@ -276,6 +281,7 @@ def main():
 
             # Write a tag describing what to do with the variant
             consensus_tag = "None"
+            consensus_base = out_r.alts[0]
             genotype = (1,)
 
             # high-frequency subs and indels are always applied without ambiguity
@@ -283,17 +289,16 @@ def main():
             if vaf > args.upper_ambiguity_frequency or is_indel:
                 # always apply these to the consensus
                 consensus_tag = "consensus"
-
-                # To capture IUPACs in reports easier have a separate column
-                consensus_base = out_r.alts[0]
+                tsv_tag = "Consensus"
             else:
                 # To capture IUPACs in reports easier have a separate column
-                consensus_base = get_base_code(out_tuple[1], args.upper_ambiguity_frequency)
+                iupac_base = get_base_code(out_tuple[1], args.upper_ambiguity_frequency)
 
                 # Record ambiguous SNPs in the consensus sequence with IUPAC codes
                 consensus_tag = "ambiguous"
+                tsv_tag = f"Ambiguous - {iupac_base}"
                 # Genotype needs to be mixed to get an iupac if that is what the base should be
-                if consensus_base not in ['A', 'T', 'G', 'C']:
+                if iupac_base not in ['A', 'T', 'G', 'C']:
                     genotype = (0,1)
 
             # Output for consensus generation and reporting
@@ -312,7 +317,7 @@ def main():
                 int(out_r.qual),
                 depth,
                 vaf,
-                consensus_tag
+                tsv_tag
             ])
 
             accept_variant = True

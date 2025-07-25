@@ -85,6 +85,8 @@ process GENERATE_AMPLICON_BED {
 process SPLIT_AMPLICON_REGION {
     label 'process_single'
 
+    container "biocontainers/coreutils:8.31--h14c3975_0"
+
     input:
     path bed
 

@@ -16,7 +16,7 @@ tools:
       licence: ["MIT"]
       identifier: biotools:samtools
 input:
-  - - meta1:
+  - - meta:
         type: map
         description: |
           Groovy Map containing sample information
@@ -36,7 +36,7 @@ input:
         pattern: "*.{bed}"
 output:
   - tsv:
-      - meta1:
+      - meta:
           type: map
           description: |
             Groovy Map containing sample information

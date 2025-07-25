@@ -22,8 +22,8 @@ process MAKE_CUSTOM_REPORT {
 
     output:
     path "*.html", emit: html
-    path "*_files", emit: data_dir // Using self-contained false 
     path "versions.yml", emit: versions
+    path version_yml, includeInputs: true, emit: full_versions // So iridanext plugin can find it
 
     when:
     task.ext.when == null || task.ext.when

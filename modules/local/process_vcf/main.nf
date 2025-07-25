@@ -8,8 +8,8 @@ process PROCESS_VCF {
     //  Notably adding in the genotype format as 1 for variants to work with newer bcftools, a slight qual filter, and tsv output to table later
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.6.2--pyhdfd78af_0' :
-        'biocontainers/artic:1.6.2--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
+        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(vcf)
@@ -33,6 +33,7 @@ process PROCESS_VCF {
         -d ${params.min_depth} \\
         -l ${params.min_ambiguity_threshold} \\
         -u ${params.max_ambiguity_threshold} \\
+        -m ${params.min_indel_threshold} \\
         -q 20 \\
         -c ${meta.id}.processed.vcf \\
         -v ${meta.id}.variants.vcf \\

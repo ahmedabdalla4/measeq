@@ -28,7 +28,8 @@ process COMPARE_INTERNAL_DSID {
     """
     compare_dsid.py \\
         --fasta $n450_fasta \\
-        --dsid_fasta $id_fasta
+        --dsid_fasta $id_fasta \\
+        --write_novel
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

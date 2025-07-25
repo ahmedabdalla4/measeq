@@ -3,9 +3,6 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { paramsSummaryMap        } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc    } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText  } from '../subworkflows/local/utils_nfcore_measeq_pipeline'
 include { SETUP_REFERENCE_DATA    } from '../subworkflows/local/setup_reference_data'
 include { NANOPORE_CONSENSUS      } from '../subworkflows/local/nanopore_consensus'
 include { ILLUMINA_CONSENSUS      } from '../subworkflows/local/illumina_consensus'
@@ -37,7 +34,7 @@ workflow MEASEQ {
     ch_multiqc_files = Channel.empty()
     ch_metadata = params.metadata ? file(params.metadata, type: 'file', checkIfExists: true) : []
     Channel
-        .value(file(params.custom_nextclade_dataset, type: 'dir', checkIfExists: true))
+        .value(file("$projectDir/assets/custom_measles_nextclade_dataset", type: 'dir', checkIfExists: true))
         .set { ch_custom_nextclade_dataset }
     ch_id_fasta = params.dsid_fasta ? file(params.dsid_fasta, type: 'file', checkIfExists: true) : []
 
@@ -100,7 +97,7 @@ workflow MEASEQ {
         ch_bam_bai      = NANOPORE_CONSENSUS.out.bam_bai
         ch_consensus    = NANOPORE_CONSENSUS.out.consensus
         ch_vcf          = NANOPORE_CONSENSUS.out.vcf
-        ch_variants_tsv = Channel.empty() // for now, need to set this up still
+        ch_variants_tsv = NANOPORE_CONSENSUS.out.variants_tsv
         ch_versions     = ch_versions.mix(NANOPORE_CONSENSUS.out.versions)
 
     } else if( params.platform == 'illumina' ) {

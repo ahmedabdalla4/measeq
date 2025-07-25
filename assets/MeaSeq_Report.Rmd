@@ -2,7 +2,7 @@
 title: "MeaSeq: Measles Sequencing Run Report"
 output: 
   flexdashboard::flex_dashboard:
-    self_contained: false
+    self_contained: true
     orientation: rows
     vertical_layout: scroll
     mathjax: NULL
