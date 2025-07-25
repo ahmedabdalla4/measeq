@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 '''
 Script to create a genomic depth mask for consensus generation
-    Adapted from https://github.com/artic-network/fieldbioinformatics/blob/master/artic/make_depth_mask.py
-    to remove the need for RG tags steps for non-amplicon data
+    Adapted from https://github.com/artic-network/fieldbioinformatics/blob/master/artic/make_depth_mask.py v1.6.2
+    to just remove the need for RG tags steps for non-amplicon data
+
+    Amplicon data is using the proper tool
 '''
 
 from Bio import SeqIO

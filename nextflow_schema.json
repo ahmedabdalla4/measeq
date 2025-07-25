@@ -1,10 +1,10 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/phac-nml/measeq/master/nextflow_schema.json",
+    "$schema": "https://json-schema.org/draft-07/schema",
+    "$id": "https://raw.githubusercontent.com/phac-nml/measeq/main/nextflow_schema.json",
     "title": "phac-nml/measeq pipeline parameters",
     "description": "Measles sequencing and analysis",
     "type": "object",
-    "$defs": {
+    "definitions": {
         "input_output_options": {
             "title": "Input/output options",
             "type": "object",
@@ -69,9 +69,9 @@
             "fa_icon": "fas fa-vials"
         },
         "illumina_options": {
-            "title": "Illumina options",
+            "title": "Illumina variant calling thresholds",
             "type": "object",
-            "description": "Options specific to Illumina data",
+            "description": "Options specific to Illumina variant calling thresholds",
             "default": "",
             "properties": {
                 "min_ambiguity_threshold": {
@@ -85,6 +85,12 @@
                     "description": "Maximum threshold to call a position as an IUPAC",
                     "default": 0.75,
                     "fa_icon": "far fa-plus-square"
+                },
+                "min_indel_threshold": {
+                    "type": "number",
+                    "description": "Minimum thresholds to keep an indel",
+                    "default": 0.6,
+                    "fa_icon": "far fa-minus-square"
                 }
             }
         },
@@ -152,7 +158,8 @@
                 },
                 "neg_ctrl_substrings": {
                     "type": "string",
-                    "default": "neg,ntc,blank",
+                    "pattern": "^\\S+$",
+                    "default": "neg,ntc,blank,en",
                     "description": "Substrings to match to sample names to identify negative controls. Separated by a ,"
                 },
                 "skip_negative_grading": {
@@ -170,15 +177,15 @@
             "properties": {
                 "nextclade_dataset_name": {
                     "type": "string",
-                    "default": "nextstrain/measles/N450/WHO-2012"
+                    "enum": ["nextstrain/measles/N450/WHO-2012"],
+                    "default": "nextstrain/measles/N450/WHO-2012",
+                    "description": "Name of the nextclade dataset to use. Shouldn't be changed unless needed"
                 },
                 "nextclade_dataset_tag": {
                     "type": "string",
-                    "default": "2025-03-26--11-47-13Z"
-                },
-                "custom_nextclade_dataset": {
-                    "type": "string",
-                    "default": "PROJECT/assets/custom_measles_nextclade_dataset"
+                    "enum": ["2025-03-26--11-47-13Z"],
+                    "default": "2025-03-26--11-47-13Z",
+                    "description": "Tag for the nextclade dataset to use. Shouldn't be changed unless needed"
                 }
             }
         },
@@ -189,6 +196,12 @@
             "description": "Less common options for the pipeline, typically set in a config file.",
             "help_text": "These options are common to all nf-core pipelines and allow you to customise some of the core preferences for how the pipeline runs.\n\nTypically these options would be set in a Nextflow config file loaded for all pipeline runs, such as `~/.nextflow/config`.",
             "properties": {
+                "help": {
+                    "type": "boolean",
+                    "description": "Display help message and exit.",
+                    "fa_icon": "fas fa-question-circle",
+                    "hidden": true
+                },
                 "version": {
                     "type": "boolean",
                     "description": "Display version and exit.",
@@ -217,13 +230,6 @@
                     "fa_icon": "fas fa-check-square",
                     "hidden": true
                 },
-                "pipelines_testdata_base_path": {
-                    "type": "string",
-                    "fa_icon": "far fa-check-circle",
-                    "description": "Base URL or local path to location of pipeline test dataset files",
-                    "default": "https://raw.githubusercontent.com/nf-core/test-datasets/",
-                    "hidden": true
-                },
                 "trace_report_suffix": {
                     "type": "string",
                     "fa_icon": "far calendar",
@@ -235,28 +241,28 @@
     },
     "allOf": [
         {
-            "$ref": "#/$defs/input_output_options"
+            "$ref": "#/definitions/input_output_options"
         },
         {
-            "$ref": "#/$defs/required_options"
+            "$ref": "#/definitions/required_options"
         },
         {
-            "$ref": "#/$defs/amplicon_options"
+            "$ref": "#/definitions/amplicon_options"
         },
         {
-            "$ref": "#/$defs/illumina_options"
+            "$ref": "#/definitions/illumina_options"
         },
         {
-            "$ref": "#/$defs/nanopore_options"
+            "$ref": "#/definitions/nanopore_options"
         },
         {
-            "$ref": "#/$defs/analysis_options"
+            "$ref": "#/definitions/analysis_options"
         },
         {
-            "$ref": "#/$defs/nextclade_options"
+            "$ref": "#/definitions/nextclade_options"
         },
         {
-            "$ref": "#/$defs/generic_options"
+            "$ref": "#/definitions/generic_options"
         }
     ]
 }

@@ -42,7 +42,7 @@ process AMPLICON_DEPTH_HEATMAP {
     df.to_csv('amplicon_depth_full.tsv', index=True, sep="\t")
 
     # Log10
-    df1= pd.DataFrame(np.ma.log10(df.values).filled(0), index=df.index, columns=df.columns)
+    df1 = pd.DataFrame(np.ma.log10(df.values).filled(0), index=df.index, columns=df.columns)
     df1.to_csv('amplicon_depth_heatmap_mqc.tsv', index=True, sep="\t")
     """
 

@@ -19,8 +19,8 @@ process ARTIC_ALIGN_TRIM {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.6.2--pyhdfd78af_0' :
-        'biocontainers/artic:1.6.2--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
+        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -29,6 +29,7 @@ process ARTIC_ALIGN_TRIM {
 
     output:
     tuple val(meta), path("${meta.id}.*trimmed.rg.sorted.bam"), path("${meta.id}.*trimmed.rg.sorted.bam.bai"), emit: bam
+    tuple val(meta), path("${meta.id}.amplicon_depths.tsv"), emit: amp_report
     path "versions.yml", emit: versions
 
     script:
@@ -48,8 +49,10 @@ process ARTIC_ALIGN_TRIM {
         $argsConfig \\
         --remove-incorrect-pairs \\
         --report ${meta.id}.alignreport-${mode}.csv \\
+        --amp-depth-report ${meta.id}.amplicon_depths.tsv \\
+        --primer-match-threshold 15 \\
         $primer_bed \\
-        < $bam 2> ${meta.id}.alignreport-${mode}.er \\
+        < $bam \\
     | samtools sort -T ${meta.id} - -o $outName
 
     samtools index $outName
@@ -65,6 +68,7 @@ process ARTIC_ALIGN_TRIM {
     """
     touch ${meta.id}.trimmed.rg.sorted.bam
     touch ${meta.id}.trimmed.rg.sorted.bam.bai
+    touch ${meta.id}.amplicon_depths.tsv
 
     # Versions #
     cat <<-END_VERSIONS > versions.yml
@@ -80,8 +84,8 @@ process ARTIC_VCF_MERGE {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.6.2--pyhdfd78af_0' :
-        'biocontainers/artic:1.6.2--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
+        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     // The vcf_tuples input is [[ path(vcf), val(pool) ], [...]]
     //   The path(vcf) is turned into a string of the full path using the val() input type
@@ -129,8 +133,8 @@ process CUSTOM_VCF_FILTER {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.6.2--pyhdfd78af_0' :
-        'biocontainers/artic:1.6.2--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
+        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(vcf)
@@ -183,8 +187,8 @@ process ARTIC_MAKE_DEPTH_MASK{
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.6.2--pyhdfd78af_0' :
-        'biocontainers/artic:1.6.2--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
+        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -229,8 +233,8 @@ process CUSTOM_MAKE_DEPTH_MASK {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.6.2--pyhdfd78af_0' :
-        'biocontainers/artic:1.6.2--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
+        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -273,8 +277,8 @@ process ARTIC_MASK {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.6.2--pyhdfd78af_0' :
-        'biocontainers/artic:1.6.2--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
+        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
     tuple val(meta), path(coverage_mask), path(fail_vcf)
@@ -312,9 +316,12 @@ process ARTIC_MASK {
 }
 
 // Maybe there is a better way to adjust the header than additional val inputs
+//  But this works pretty well
 process ADJUST_FASTA_HEADER {
     label 'process_single'
     tag "$meta.id"
+
+    container "biocontainers/coreutils:8.31--h14c3975_0"
 
     input:
     tuple val(meta), path(consensus)
@@ -344,7 +351,7 @@ process ADJUST_FASTA_HEADER {
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        artic: \$(echo \$(artic --version 2>&1) | sed 's/artic //')
+        sed: \$(echo \$(sed --version) | head -n 1 | cut -d' ' -f 4)
     END_VERSIONS
     """
 }

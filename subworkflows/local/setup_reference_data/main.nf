@@ -44,12 +44,12 @@ workflow SETUP_REFERENCE_DATA {
 
     //
     // Create reference meta-map for downstream steps
-    //
+    //  The irida_id key is there to not error out when creating the upload file with nf-iridanext
     Channel
         .value(file(reference, type: 'file', checkIfExists: true))
         .map { file ->
             def firstLine = file.withReader { it.readLine() }
-            def meta = [id: firstLine.split()[0].replace('>', '')]
+            def meta = [id: firstLine.split()[0].replace('>', ''), irida_id: 'reference']
             [meta, file]
         }
         .set { ch_reference }

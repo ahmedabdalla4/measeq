@@ -15,11 +15,15 @@ process MAKE_CUSTOM_REPORT {
     val genotype
     path report_template
     path subpages
+    path version_yml
+    val pipeline_version
+    val revision
+    val nf_version
 
     output:
     path "*.html", emit: html
-    path "*_files", emit: data_dir // Using self-contained false 
     path "versions.yml", emit: versions
+    path version_yml, includeInputs: true, emit: full_versions // So iridanext plugin can find it
 
     when:
     task.ext.when == null || task.ext.when
@@ -43,11 +47,19 @@ process MAKE_CUSTOM_REPORT {
     mv $variants_tsv variant_tsv/
 
     # Create Report #
-    Rscript -e "rmarkdown::render('$report_template', params = list(genotype = '$genotype', overall_qc = '$overall_qc_csv'))"
+    Rscript -e "rmarkdown::render(
+        '$report_template',
+        params = list(
+            genotype = '$genotype',
+            overall_qc = '$overall_qc_csv',
+            version = '$pipeline_version',
+            revision = '$revision',
+            nf_version = '$nf_version'
+        ))"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:y
+        Measeq_Report: 0.1.0
     END_VERSIONS
     """
 
@@ -57,7 +69,7 @@ process MAKE_CUSTOM_REPORT {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        x:y
+        MeaSeq_Report: 0.1.0
     END_VERSIONS
     """
 }

@@ -11,6 +11,7 @@ include { PYSAMSTATS              } from '../../../modules/local/pysamstats/main
 include { POSITIONAL_N_DEPTH      } from '../../../modules/local/custom/positional_n_depth/main'
 include { CALCULATE_BAM_VARIATION } from '../../../modules/local/custom/calculate_bam_variation/main'
 include { NORMALIZE_DEPTH_MATRIX  } from '../../../modules/local/custom/normalize_depth_matrix/main'
+include { softwareVersionsToYAML  } from '../../nf-core/utils_nfcore_pipeline'
 include { MAKE_CUSTOM_REPORT      } from '../../../modules/local/custom/custom_report/main'
 
 /*
@@ -29,9 +30,9 @@ workflow GENERATE_REPORT {
     ch_genotype             // channel: [ genotype ]
     ch_depth_tsv            // channel: [ [id], depth_tsv ]
     ch_overall_qc           // channel: [ csv ]
+    ch_versions             // channel: [ version_ymls ]
 
     main:
-    ch_versions = Channel.empty()
     ch_report_template = Channel.fromPath("$projectDir/assets/MeaSeq_Report.Rmd")
     ch_report_subpages = Channel.fromPath("$projectDir/assets/subpage_*.Rmd")
 
@@ -71,8 +72,20 @@ workflow GENERATE_REPORT {
     )
 
     //
+    // Collate and save software versions
+    //  Moved to reporting so that it can be included in the report
+    //
+    softwareVersionsToYAML(ch_versions)
+        .collectFile(
+            name:  'measeq_software_'  + 'mqc_'  + 'versions.yml',
+            sort: true,
+            newLine: true
+        ).set { ch_collated_versions }
+
+    //
     // MODULE: Make custom final HTML Report
     //
+    revision = workflow.revision ? workflow.revision : 'main'
     MAKE_CUSTOM_REPORT(
         ch_overall_qc,
         ch_depth_tsv.collect{ it[1] },
@@ -83,7 +96,11 @@ workflow GENERATE_REPORT {
         NORMALIZE_DEPTH_MATRIX.out.full_csv,
         ch_genotype,
         ch_report_template,
-        ch_report_subpages.collect()
+        ch_report_subpages.collect(),
+        ch_collated_versions,
+        workflow.manifest.version,
+        revision,
+        nextflow.version
     )
     ch_versions = ch_versions.mix(MAKE_CUSTOM_REPORT.out.versions)
 
