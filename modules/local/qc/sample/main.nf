@@ -33,6 +33,9 @@ process MAKE_SAMPLE_QC_CSV {
     def dsidArg = dsid ? "--matched_dsid $dsid" : ""
     // Add primer bed if we have it
     def seqPrimerArg = primer_bed ? "--seq_bed $primer_bed" : ""
+
+    // Run
+    //  Note that the meta.irida_id is also here as we need to add a new column to pull it out
     """
     sample_qc.py \\
         --bam $bam \\
@@ -45,7 +48,8 @@ process MAKE_SAMPLE_QC_CSV {
         $readJsonArg \\
         $dsidArg \\
         $seqPrimerArg \\
-        --sample $meta.id
+        --sample $meta.id \\
+        --irida_id $meta.irida_id
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

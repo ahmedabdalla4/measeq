@@ -63,6 +63,13 @@ def init_parser() -> argparse.ArgumentParser:
         help='Sample name'
     )
     parser.add_argument(
+        '-i',
+        '--irida_id',
+        required=True,
+        type=str,
+        help='IRIDA sample name to add to output'
+    )
+    parser.add_argument(
         '-g',
         '--genotype',
         required=True,
@@ -619,7 +626,8 @@ def main() -> None:
         'mutated_stop_codon': [stop_mutation],
         'variants': [variants],
         'sequencing_primer_variants': [seq_primer_overlap],
-        'qc_status': [qc_status]
+        'qc_status': [qc_status],
+        'irida_id': [args.irida_id]
     }
     df = pd.DataFrame.from_dict(final)
     df.to_csv(f'{args.sample}.qc.csv', index=False)
