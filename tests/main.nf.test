@@ -66,7 +66,7 @@ nextflow_pipeline {
     }
 
     //--- Test 4
-    test("Illumina Amplicon Data Completion") {
+    test("Illumina Amplicon Data with Sample Name Completion") {
         tag "success"
 
         when {
@@ -142,24 +142,24 @@ nextflow_pipeline {
             assert iridanext_global.findAll { it.path == "pipeline_info/measeq_software_mqc_versions.yml" }.size() == 1
             assert iridanext_global.findAll { it.path == "Amplicon-Summary-MultiQC-Report_multiqc_report.html" }.size() == 1
 
-            assert iridanext_samples.sample1.findAll { it.path == "consensus/sample1.N450.fasta" }.size() == 1
-            assert iridanext_samples.sample1.findAll { it.path == "consensus/sample1.consensus.fasta" }.size() == 1
-            assert iridanext_samples.sample1.findAll { it.path == "vcf/processed_vcf/sample1.processed.norm.vcf.gz" }.size() == 1
+            assert iridanext_samples.add_sample1.findAll { it.path == "consensus/sample1.N450.fasta" }.size() == 1
+            assert iridanext_samples.add_sample1.findAll { it.path == "consensus/sample1.consensus.fasta" }.size() == 1
+            assert iridanext_samples.add_sample1.findAll { it.path == "vcf/processed_vcf/sample1.processed.norm.vcf.gz" }.size() == 1
 
-            assert iridanext_metadata.sample1.genotype == "D8"
-            assert iridanext_metadata.sample1.matched_dsid == "NA"
-            assert iridanext_metadata.sample1.num_input_reads == "40476"
-            assert iridanext_metadata.sample1.num_aligned_reads == "39026"
-            assert iridanext_metadata.sample1.num_consensus_n == "224"
-            assert iridanext_metadata.sample1.genome_completeness_percent == "98.59"
-            assert iridanext_metadata.sample1.mean_sequencing_depth == "349.06"
-            assert iridanext_metadata.sample1.median_sequencing_depth == "313.0"
-            assert iridanext_metadata.sample1.total_variants == "269"
-            assert iridanext_metadata.sample1.num_snps == "269"
-            assert iridanext_metadata.sample1.num_iupac == "0"
-            assert iridanext_metadata.sample1.genome_length == "15894"
-            assert iridanext_metadata.sample1.divisible_by_6 == "True"
-            assert iridanext_metadata.sample1.qc_status == "PASS"
+            assert iridanext_metadata.add_sample1.genotype == "D8"
+            assert iridanext_metadata.add_sample1.matched_dsid == "NA"
+            assert iridanext_metadata.add_sample1.num_input_reads == "40476"
+            assert iridanext_metadata.add_sample1.num_aligned_reads == "39026"
+            assert iridanext_metadata.add_sample1.num_consensus_n == "224"
+            assert iridanext_metadata.add_sample1.genome_completeness_percent == "98.59"
+            assert iridanext_metadata.add_sample1.mean_sequencing_depth == "349.06"
+            assert iridanext_metadata.add_sample1.median_sequencing_depth == "313.0"
+            assert iridanext_metadata.add_sample1.total_variants == "269"
+            assert iridanext_metadata.add_sample1.num_snps == "269"
+            assert iridanext_metadata.add_sample1.num_iupac == "0"
+            assert iridanext_metadata.add_sample1.genome_length == "15894"
+            assert iridanext_metadata.add_sample1.divisible_by_6 == "True"
+            assert iridanext_metadata.add_sample1.qc_status == "PASS"
 
             // Pipeline info and tracking
             assert path("$launchDir/results/pipeline_info").exists()
