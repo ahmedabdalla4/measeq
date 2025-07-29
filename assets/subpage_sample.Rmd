@@ -159,7 +159,7 @@ p <- p %>% layout(
 p
 ```
 
-> **Figure 3.** Subconsensus Variant Read Counts. The sample pileup was analyzed to find positions in the genome where the non-reference allele percentage was >=15%.
+> **Figure 2.** Subconsensus Variant Read Counts. The sample pileup was analyzed to find positions in the genome where the non-reference allele percentage was >=15%.
 > All positions with >=10 reads, a positional read base quality of >=20 and a map quality >=30 were included in the analysis.
 > Mixed sites in this figure that are not in the variant table are variants that have failed processing so they are reference bases in the final consensus and not IUPAC bases.
 
@@ -309,7 +309,7 @@ depthp <- depthp %>% add_text(
 
 depthp
 ```
-> **Figure 4.** Positional genomic depth. The Y-axis is log-scaled so positions with no genomic depth have been set to 1 to allow a continuous visualization. Zones have been marked using a colour scheme where: 0-10 is red corresponding to masked sites, 10-30 is yellow corresponding to sites where there is a basecall but limited depth, and 30+ is green for positions with acceptable or better depth.
+> **Figure 3.** Positional genomic depth. The Y-axis is log-scaled so positions with no genomic depth have been set to 1 to allow a continuous visualization. Zones have been marked using a colour scheme where: 0-10 is red corresponding to masked sites, 10-30 is yellow corresponding to sites where there is a basecall but limited depth, and 30+ is green for positions with acceptable or better depth.
 
 Row
 ------------------------------
@@ -382,7 +382,7 @@ qualityp <- qualityp %>% add_text(
 
 qualityp
 ```
-> **Figure 5.** Average root-mean-square read base quality score per genomic position
+> **Figure 4.** Average root-mean-square read base quality score per genomic position
 
 ## Row {data-height=50}
 
