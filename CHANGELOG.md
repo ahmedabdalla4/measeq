@@ -3,6 +3,17 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.1] - 2025-07-29
+
+### `Adjusted`
+
+- Fixed a bug where the irida json file wasn't being populated with metadata [PR #7](https://github.com/phac-nml/measeq/pull/7)
+- Adjusted Illumina nf-test to use the `sample_name` field of the samplesheet to test that it works [PR #7](https://github.com/phac-nml/measeq/pull/7)
+
+### `Removed`
+
+- Normalized median read depth plot for now as it overlaps the full depth one too much [PR #7](https://github.com/phac-nml/measeq/pull/7)
+
 ## [v0.3.0] - 2025-07-25
 
 ### `Added`
@@ -77,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - MeaSeq pipeline created and initial code added
 
+[v0.3.1]: https://github.com/phac-nml/measeq/releases/tag/0.3.1
 [v0.3.0]: https://github.com/phac-nml/measeq/releases/tag/0.3.0
 [v0.2.1-dev]: https://github.com/phac-nml/measeq/releases/tag/0.2.1-dev
 [v0.2.0-dev]: https://github.com/phac-nml/measeq/releases/tag/0.2.0-dev
