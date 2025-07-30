@@ -30,7 +30,7 @@ dsid_dt <- dsid_grouped_df %>%
     ),
     options = list(
       pageLength = 20,
-      order = list(list(0, 'asc'), list(2, 'desc')),
+      order = list(list(0, 'asc'), list(2, 'desc'), list(1, 'desc')),
       scrollX = FALSE,
       scrollY = "",
       columnDefs = list(
