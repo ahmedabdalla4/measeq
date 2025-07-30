@@ -3,16 +3,28 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.3.2] - 2025-0X-XX
+
+### `Added`
+
+- DSId tab to final HTML report for DSId summary information if a DSId file was given as input [PR #10](https://github.com/phac-nml/measeq/pull/10)
+
+### `Adjusted`
+
+- Fixed a bug with MeaSeq Report summary table not correctly linking to certain samples [PR #10](https://github.com/phac-nml/measeq/pull/10)
+- Removed `versions.yml` from being created during final report as versions already were reported [PR #10](https://github.com/phac-nml/measeq/pull/10)
+- Adjusted code for final report row formatting to match throughout Rmd files [PR #10](https://github.com/phac-nml/measeq/pull/10)
+
 ## [v0.3.1] - 2025-07-29
 
 ### `Adjusted`
 
-- Fixed a bug where the irida json file wasn't being populated with metadata [PR #7](https://github.com/phac-nml/measeq/pull/7)
-- Adjusted Illumina nf-test to use the `sample_name` field of the samplesheet to test that it works [PR #7](https://github.com/phac-nml/measeq/pull/7)
+- Fixed a bug where the irida json file wasn't being populated with metadata [PR #8](https://github.com/phac-nml/measeq/pull/8)
+- Adjusted Illumina nf-test to use the `sample_name` field of the samplesheet to test that it works [PR #8](https://github.com/phac-nml/measeq/pull/8)
 
 ### `Removed`
 
-- Normalized median read depth plot for now as it overlaps the full depth one too much [PR #7](https://github.com/phac-nml/measeq/pull/7)
+- Normalized median read depth plot for now as it overlaps the full depth one too much [PR #8](https://github.com/phac-nml/measeq/pull/8)
 
 ## [v0.3.0] - 2025-07-25
 
@@ -88,6 +100,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - MeaSeq pipeline created and initial code added
 
+[v0.3.2]: https://github.com/phac-nml/measeq/releases/tag/0.3.2
 [v0.3.1]: https://github.com/phac-nml/measeq/releases/tag/0.3.1
 [v0.3.0]: https://github.com/phac-nml/measeq/releases/tag/0.3.0
 [v0.2.1-dev]: https://github.com/phac-nml/measeq/releases/tag/0.2.1-dev

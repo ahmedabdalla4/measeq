@@ -22,7 +22,6 @@ process MAKE_CUSTOM_REPORT {
 
     output:
     path "*.html", emit: html
-    path "versions.yml", emit: versions
     path version_yml, includeInputs: true, emit: full_versions // So iridanext plugin can find it
 
     when:
@@ -56,20 +55,10 @@ process MAKE_CUSTOM_REPORT {
             revision = '$revision',
             nf_version = '$nf_version'
         ))"
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        Measeq_Report: 0.1.0
-    END_VERSIONS
     """
 
     stub:
     """
     touch MeaSeq_Report.html
-
-    cat <<-END_VERSIONS > versions.yml
-    "${task.process}":
-        MeaSeq_Report: 0.1.0
-    END_VERSIONS
     """
 }
