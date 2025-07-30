@@ -19,8 +19,7 @@ dsid_df <- select(summary_df,
 dsid_grouped_df <- dsid_df %>%
   filter(!is.na(Genotype) & !is.na(`Matched DSId`)) %>%
   group_by(Genotype, `Matched DSId`) %>%
-  summarise(Count = n(), .groups = "drop") %>%
-  arrange(desc(Count))
+  summarise(Count = n(), .groups = "drop")
 
 # Create normal DT like other parts have
 dsid_dt <- dsid_grouped_df %>%
@@ -30,8 +29,8 @@ dsid_dt <- dsid_grouped_df %>%
       htmltools::strong('Table III: '), 'DSId Summary Table'
     ),
     options = list(
-      dom = 't',
-      paging = FALSE,
+      pageLength = 20,
+      order = list(list(0, 'asc'), list(2, 'desc')),
       scrollX = FALSE,
       scrollY = "",
       columnDefs = list(
