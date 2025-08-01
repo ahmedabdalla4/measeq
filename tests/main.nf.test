@@ -131,6 +131,7 @@ nextflow_pipeline {
             // Final Reports
             assert path("$launchDir/results/Amplicon-Summary-MultiQC-Report_multiqc_report.html").exists()
             assert path("$launchDir/results/MeaSeq_Report.html").exists()
+            assert path("$launchDir/results/overall.xlsx").exists()
 
             // IRIDA Next output
             def iridanext_json = path("$launchDir/results/iridanext.output.json").json
@@ -224,6 +225,7 @@ nextflow_pipeline {
 
             // Final Reports
             assert path("$launchDir/results/MeaSeq_Report.html").exists()
+            assert path("$launchDir/results/overall.xlsx").exists()
 
             // IRIDA Next output
             def iridanext_json = path("$launchDir/results/iridanext.output.json").json

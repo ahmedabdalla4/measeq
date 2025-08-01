@@ -147,6 +147,13 @@ def main() -> None:
     df['pipeline_name'] = 'measeq'
     df['pipeline_version'] = args.version
     df.sort_values(by='sample', inplace=True)
+
+    # Final CSV and Excel file
+    #  Two as the iridanext plugin cannot seem to parse the newline needed to
+    #  add in a fasta formatted sequence in a cell
+    #  Those cells then get cut from the overall.qc.csv file
+    df.to_excel('overall.xlsx', sheet_name='overall', index=False)
+    df.drop(columns=['N450_fasta', 'genome_fasta'], inplace=True)
     df.to_csv('overall.qc.csv', index=False)
 
 if __name__ == '__main__':

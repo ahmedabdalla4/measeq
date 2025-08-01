@@ -1,0 +1,56 @@
+<!-- Dynamically create dsid tab if we have that information -->
+
+DSId Summary
+=================================
+
+## Row
+
+### {-}
+
+```{r dsid_table}
+# Select the 3 needed cols
+dsid_df <- select(summary_df,
+  Sample,
+  Genotype,
+  `Matched DSId`
+)
+
+# Group and sort
+dsid_grouped_df <- dsid_df %>%
+  filter(!is.na(Genotype) & !is.na(`Matched DSId`)) %>%
+  group_by(Genotype, `Matched DSId`) %>%
+  summarise(Count = n(), .groups = "drop")
+
+# Create normal DT like other parts have
+dsid_dt <- dsid_grouped_df %>%
+  datatable(rownames = FALSE,
+    caption = htmltools::tags$caption(
+      style = 'caption-side: top',
+      htmltools::strong('Table III: '), 'DSId Summary Table'
+    ),
+    options = list(
+      pageLength = 20,
+      order = list(list(0, 'asc'), list(2, 'desc'), list(1, 'desc')),
+      scrollX = FALSE,
+      scrollY = "",
+      columnDefs = list(
+        list(className = 'dt-left', targets = "_all")
+      )
+    )
+  ) %>%
+  formatStyle(
+    'Count',
+    background = styleColorBar(range(0, max(dsid_grouped_df$Count)), 'lightblue', angle = -90),
+    backgroundSize = '88% 88%',
+    backgroundRepeat = 'no-repeat',
+    backgroundPosition = 'left'
+  )
+
+dsid_dt
+```
+
+## Row {data-height=50}
+
+<footer>
+`r footer_str`
+</footer>
