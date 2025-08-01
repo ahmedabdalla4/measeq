@@ -11,8 +11,8 @@ process MAKE_SAMPLE_QC_CSV {
         'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
-    tuple val(meta), path(bam), path(bai), path(consensus), path(depth_bed), path(nextclade_n450), path(nextclade_full),
-            path(vcf), path(tbi), path(read_json)
+    tuple val(meta), path(bam), path(bai), path(consensus), path(consensus_n450), path(depth_bed),
+            path(nextclade_n450), path(nextclade_full), path(vcf), path(tbi), path(read_json)
     path dsid
     val genotype
     path primer_bed
@@ -35,11 +35,13 @@ process MAKE_SAMPLE_QC_CSV {
     def seqPrimerArg = primer_bed ? "--seq_bed $primer_bed" : ""
 
     // Run
-    //  Note that the meta.irida_id is also here as we need to add a new column to pull it out
+    //  Note that the meta.irida_id is also here as we need to add is as a new column to pull it out
+    //  if it differs from the sample column
     """
     sample_qc.py \\
         --bam $bam \\
         --consensus $consensus \\
+        --consensus_n450 $consensus_n450 \\
         --depth $depth_bed \\
         --nextclade_n450 $nextclade_n450 \\
         --nextclade_custom $nextclade_full \\

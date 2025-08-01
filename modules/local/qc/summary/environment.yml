@@ -3,4 +3,6 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconda::artic=1.7.4
+  - conda-forge::openpyxl=3.1.2
+  - conda-forge::pandas=2.2.0
+  - conda-forge::python=3.12.2

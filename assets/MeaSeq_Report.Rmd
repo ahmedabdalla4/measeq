@@ -154,20 +154,20 @@ clean_name <- function(x) {
   # Track values
   out <- character(length(x))
   seen <- list()
-  section_count <- 8 # Start at 8 because thats how it goes apparently
+  section_count <- 7 # Start at 7 because thats how it goes apparently
   
   for (i in seq_along(x)) {
     name <- x[i]
     
     if (grepl("^\\d+$", name)) {
-      # All numeric get section-8, section-14
+      # All numeric get section-7, section-14
       base <- "section"
       name_clean <- paste0(base, "-", section_count)
       # Count updates by 6...
       section_count <- section_count + 6
     } else {
-      # Remove leading numbers
-      name_clean <- sub("^\\d+", "", name)
+      # Remove everything before the first alphabetical character
+      name_clean <- sub("^[^a-zA-Z]*([a-zA-Z].*)", "\\1", name)
       # Replace _ and space with -
       name_clean <- gsub("[ _]+", "-", name_clean)
       # Count still updates but by 5...
@@ -235,6 +235,9 @@ summary_df$status_colour_code <- add_pass_value_int(summary_df, 'qc_status')
 failed_samples <- summary_df %>%
   filter(genome_completeness_percent < 50 & qc_status != "PASS") %>%
   pull(sample)
+
+# Determine if we have DSIds to summarize
+run_dsid <- any(!is.na(summary_df$matched_dsid) & nzchar(summary_df$matched_dsid))
 
 # Gene Info based on final length
 #  Currently only full genomes (~15894bp) and genomes with the 5' and 3' UTR cut (~15678bp) as references so
@@ -523,6 +526,13 @@ for ( sample_v in samples ) {
 <!-- ---------------------- -->
 <!-- Back to normal Rmd doc -->
 <!-- ---------------------- -->
+
+<!-- ---------------------------------------------------------- -->
+<!-- DSId Page if used                                          -->
+<!-- ---------------------------------------------------------- -->
+
+```{r dsid_page, child="subpage_dsid.Rmd", params=params, eval=run_dsid}
+```
 
 Providence
 =================================

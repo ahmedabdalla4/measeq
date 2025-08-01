@@ -1,8 +1,7 @@
 <!-- Dynamically create individual sample rmd pages under the same datanav menu -->
 `r paste0('# ', sample, '{data-navmenu="Sample Reports"}')`
 
-Row
-------------------------------
+## Row
 
 ### Sample Name
 ```{r, echo=FALSE, error=TRUE}
@@ -34,8 +33,7 @@ valueBox(
 )
 ```
 
-Row
-------------------------------
+## Row
 
 ### {-}
 ```{r, expanded_summary_table, echo=FALSE, error=TRUE}
@@ -88,8 +86,7 @@ sddt <- sample_df %>%
 sddt
 ```
 
-Row
-------------------------------
+## Row
 
 ### {-}
 ```{r, variant_plot, echo=FALSE, error=TRUE}
@@ -226,8 +223,7 @@ if (file.exists(var_f)) {
 ddt
 ```
 
-Row
-------------------------------
+## Row
 
 ### {-}
 ```{r, depth_plot, echo=FALSE, error=TRUE}
@@ -311,8 +307,7 @@ depthp
 ```
 > **Figure 3.** Positional genomic depth. The Y-axis is log-scaled so positions with no genomic depth have been set to 1 to allow a continuous visualization. Zones have been marked using a colour scheme where: 0-10 is red corresponding to masked sites, 10-30 is yellow corresponding to sites where there is a basecall but limited depth, and 30+ is green for positions with acceptable or better depth.
 
-Row
-------------------------------
+## Row
 
 ### {-}
 ```{r, qual_plot, echo=FALSE, error=TRUE}

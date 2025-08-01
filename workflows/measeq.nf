@@ -176,6 +176,7 @@ workflow MEASEQ {
     MAKE_SAMPLE_QC_CSV(
         ch_bam_bai
             .join(ch_consensus, by: [0])
+            .join(ADJUST_N450_FASTA_HEADER.out.consensus, by: [0])
             .join(SAMTOOLS_DEPTH.out.tsv, by: [0])
             .join(NEXTCLADE_RUN_N450.out.csv, by: [0])
             .join(NEXTCLADE_RUN_CUSTOM.out.csv, by: [0])

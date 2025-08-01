@@ -102,7 +102,6 @@ workflow GENERATE_REPORT {
         revision,
         nextflow.version
     )
-    ch_versions = ch_versions.mix(MAKE_CUSTOM_REPORT.out.versions)
 
     emit:
     versions = ch_versions

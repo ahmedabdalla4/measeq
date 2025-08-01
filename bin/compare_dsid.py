@@ -66,7 +66,7 @@ def load_dsids(dsid_fasta: Path) -> dict:
     return dsid_seqs
 
 
-def hash_seq(seq: str, length: int = 5) -> str:
+def hash_seq(seq: str, length: int = 7) -> str:
     '''
     Purpose:
     --------
@@ -118,16 +118,13 @@ def label_seqs(input_fasta: Path, dsid_seqs: dict, out: str) -> dict:
             sample = record.id.split('-N450')[0]
 
             # Check for N's and IUPACs before full matches
-            completeness = 100
+            completeness = 100.00
             if len(seq) == 0:
                 dsid = 'No Data'
             elif 'N' in seq:
                 n_pct = round((seq.count('N')/len(seq)) * 100, 2)
                 completeness = 100 - n_pct
-                if completeness > 90:
-                    dsid = 'Semi-Complete'
-                else:
-                    dsid = 'Incomplete'
+                dsid = 'Incomplete'
             elif any(nt in seq for nt in AMBIGUOUS_NT):
                 dsid = 'Ambiguous Base'
             elif seq in dsid_seqs:
@@ -159,9 +156,9 @@ def main():
     if novel_seqs and args.write_novel:
         with open('novel_dsids.tsv', 'w', newline='') as tsvfile:
             writer = csv.writer(tsvfile, delimiter='\t')
-            writer.writerow(['tmp_id', 'sequence'])
-            for seq, tmp_id in novel_seqs.items():
-                writer.writerow([tmp_id, seq])
+            writer.writerow(['novel_id', 'sequence'])
+            for seq, novel_id in novel_seqs.items():
+                writer.writerow([novel_id, seq])
 
 if __name__ == '__main__':
     main()
