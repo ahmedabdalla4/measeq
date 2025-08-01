@@ -418,6 +418,7 @@ Custom python script combined intermediate and final files to give concatenate a
 <summary>Output files</summary>
 
 - `overall.qc.csv`: Final combined QC information CSV file
+- `overall.xlsx`: Final combined QC information file in excel format that also has the genomes in fasta format
 
 </details>
 

@@ -3,14 +3,14 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.3.2] - 2025-0X-XX
+## [v0.3.2] - 2025-08-01
 
 ### `Added`
 
 - DSId tab to final HTML report for DSId summary information if a DSId file was given as input [PR #10](https://github.com/phac-nml/measeq/pull/10)
-- New columns to final QC report based on wants [PR #10](https://github.com/phac-nml/measeq/pull/10)
-  - `genome_fasta` and `N450_fasta`
-  - Also adds a `overall.xlsx` file
+- New `overall.xlsx` final QC file based on adding in a few more columns [PR #10](https://github.com/phac-nml/measeq/pull/10)
+  - `genome_fasta` and `N450_fasta` that contain fasta formatted sequence data
+    - This broke the CSV file version parsing so that remains unchanged to get metadata to IRIDANext
 
 ### `Adjusted`
 
@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - DSId assignment changes [PR #10](https://github.com/phac-nml/measeq/pull/10)
   - Hash adjusted to 7 characters
   - Semi-Complete removed to just be Incomplete
-- New container for the MAKE_FINAL_QC_CSV step [PR #10](https://github.com/phac-nml/measeq/pull/10)
-  - Add in openpyxl
+- New container for the MAKE_FINAL_QC_CSV step to remove artic container [PR #10](https://github.com/phac-nml/measeq/pull/10)
+  - Adds in openpyxl
 
 ## [v0.3.1] - 2025-07-29
 
