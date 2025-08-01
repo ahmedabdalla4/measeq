@@ -8,12 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### `Added`
 
 - DSId tab to final HTML report for DSId summary information if a DSId file was given as input [PR #10](https://github.com/phac-nml/measeq/pull/10)
+- New columns to final QC report based on wants [PR #10](https://github.com/phac-nml/measeq/pull/10)
+  - `genome_fasta` and `N450_fasta`
+  - Also adds a `overall.xlsx` file
 
 ### `Adjusted`
 
 - Fixed a bug with MeaSeq Report summary table not correctly linking to certain samples [PR #10](https://github.com/phac-nml/measeq/pull/10)
 - Removed `versions.yml` from being created during final report as versions already were reported [PR #10](https://github.com/phac-nml/measeq/pull/10)
 - Adjusted code for final report row formatting to match throughout Rmd files [PR #10](https://github.com/phac-nml/measeq/pull/10)
+- DSId assignment changes [PR #10](https://github.com/phac-nml/measeq/pull/10)
+  - Hash adjusted to 7 characters
+  - Semi-Complete removed to just be Incomplete
+- New container for the MAKE_FINAL_QC_CSV step [PR #10](https://github.com/phac-nml/measeq/pull/10)
+  - Add in openpyxl
 
 ## [v0.3.1] - 2025-07-29
 

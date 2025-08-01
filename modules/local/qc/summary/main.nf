@@ -6,8 +6,8 @@ process MAKE_FINAL_QC_CSV {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/artic:1.7.4--pyhdfd78af_0' :
-        'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
+        'https://depot.galaxyproject.org/singularity/mulled-v2-9941f0d0ff90a15b0f7804a7487c30957fb6e6cf:aa1fff77714712ab105e19c770efcb635ed300ff-0' :
+        'biocontainers/mulled-v2-9941f0d0ff90a15b0f7804a7487c30957fb6e6cf:aa1fff77714712ab105e19c770efcb635ed300ff-0' }"
 
     input:
     path concat_csv
@@ -18,6 +18,7 @@ process MAKE_FINAL_QC_CSV {
 
     output:
     path "overall.qc.csv", emit: csv
+    path "overall.xlsx", emit: xlsx
     path "versions.yml", emit: versions
 
     script:
@@ -36,18 +37,19 @@ process MAKE_FINAL_QC_CSV {
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        artic: \$(echo \$(artic --version 2>&1) | sed 's/artic //')
+        python: \$(python --version | sed 's/Python //g')
     END_VERSIONS
     """
 
     stub:
     """
     touch overall.qc.csv
+    touch overall.xlsx
 
     # Versions #
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        artic: \$(echo \$(artic --version 2>&1) | sed 's/artic //')
+        python: \$(python --version | sed 's/Python //g')
     END_VERSIONS
     """
 }

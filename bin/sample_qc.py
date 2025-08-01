@@ -28,11 +28,18 @@ def init_parser() -> argparse.ArgumentParser:
         help='Input sample bam file'
     )
     parser.add_argument(
-        '-c',
+        '-c1',
         '--consensus',
         required=True,
         type=Path,
-        help='Input sample consensus sequence file'
+        help='Input sample consensus sequence fasta file'
+    )
+    parser.add_argument(
+        '-c2',
+        '--consensus_n450',
+        required=True,
+        type=Path,
+        help='Input sample N450 consensus sequence fasta file'
     )
     parser.add_argument(
         '-d',
@@ -601,6 +608,13 @@ def main() -> None:
                          frameshift_status, nonsense_status, stop_mutation_status,
                          genotype_match)
 
+    # N450 seq for inclusion in final excel output ONLY
+    #  If empty file, get value error and then put in 450 Ns
+    try:
+        n450_seq = SeqIO.read(args.consensus_n450, "fasta").seq.upper()
+    except ValueError:
+        n450_seq = 'N'*450
+
     # Output
     final = {
         'sample': [args.sample],
@@ -627,7 +641,9 @@ def main() -> None:
         'variants': [variants],
         'sequencing_primer_variants': [seq_primer_overlap],
         'qc_status': [qc_status],
-        'irida_id': [args.irida_id]
+        'irida_id': [args.irida_id],
+        'N450_fasta': [f">{args.sample}-N450\n{n450_seq}"],
+        'genome_fasta': [f">{args.sample}\n{consensus.seq.upper()}"]
     }
     df = pd.DataFrame.from_dict(final)
     df.to_csv(f'{args.sample}.qc.csv', index=False)

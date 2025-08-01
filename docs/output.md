@@ -390,7 +390,15 @@ Samtools depth is used to summarize the depth sequenced at all reference genome 
 
 #### Compare DSId
 
-Comparing the output N450 sequences to a multifasta DSId reference to determine if they match. The output is only saved under work as the DSId call is just added to the QC file right after.
+Comparing the output N450 sequences to a multifasta DSId reference to determine if they match. Novel DSIds are given a `Novel-<HASH>` ID so that they are easy to group and identify
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `dsids.tsv`: TSV file containing each samples DSId call and the completeness of the region
+- `novel_dsids.tsv`: TSV file containing the different run `Novel-HASH` DSId calls along with its N450 sequence
+
+</details>
 
 #### Make Sample QC
 
