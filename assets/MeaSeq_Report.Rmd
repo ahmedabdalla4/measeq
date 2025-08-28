@@ -311,6 +311,9 @@ summary_df <- summary_df %>%
     "Frameshifts" = frameshifts,
     "Premature Stop Codon" = nonsense_mutation,
     "Mutated Stop Codon" = mutated_stop_codon,
+    "N450 Completeness" = N450_completeness,
+    "N450 Mean Depth" = N450_mean_depth,
+    "N450 Status" = N450_status,
     "QC Status" = qc_status,
     "Run Status" = run_status,
     "Run Summary" = run_summary
@@ -360,6 +363,7 @@ metrics_df <- select(summary_df,
   `Total Variants`,
   `Genome Completeness (%)`,
   `Genome Length`,
+  `N450 Status`,
   `QC Status`,
   status_colour_code
 )

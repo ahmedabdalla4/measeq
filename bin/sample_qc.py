@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''Create Sample QC CSV file based on pipeline outputs'''
+'''Create Sample QC CSV file based on all pipeline outputs'''
 
 import argparse
 import csv
@@ -13,6 +13,7 @@ import pandas as pd
 from Bio import SeqIO, SeqRecord
 from pathlib import Path
 from typing import Tuple
+
 
 def init_parser() -> argparse.ArgumentParser:
     """
@@ -91,6 +92,13 @@ def init_parser() -> argparse.ArgumentParser:
         help='Input sample passing vcf file'
     )
     parser.add_argument(
+        '-m',
+        '--matched_dsid',
+        required=True,
+        type=Path,
+        help='TSV containing compared DSID calls'
+    )
+    parser.add_argument(
         '--nanoq_json',
         required=False,
         type=Path,
@@ -103,18 +111,13 @@ def init_parser() -> argparse.ArgumentParser:
         help='Fastp stats json file'
     )
     parser.add_argument(
-        '--matched_dsid',
-        required=False,
-        type=Path,
-        help='TSV containing compared DSID calls'
-    )
-    parser.add_argument(
         '--seq_bed',
         required=False,
         type=Path,
         help='Input Sequencing primer bed file to test variants against'
     )
     return parser
+
 
 def get_read_count(bam: Path) -> int:
     '''
@@ -135,6 +138,7 @@ def get_read_count(bam: Path) -> int:
     read_count = subprocess.run(cmd, capture_output=True, check=True, text=True).stdout.strip('\n')
     return int(read_count)
 
+
 def parse_nanoq_json(injson: Path) -> float:
     '''
     Purpose:
@@ -153,6 +157,7 @@ def parse_nanoq_json(injson: Path) -> float:
     with open(injson, 'r') as handle:
         json_obj = json.load(handle)
         return json_obj['reads']
+
 
 def parse_fastp_json(injson: Path) -> float:
     '''
@@ -173,7 +178,8 @@ def parse_fastp_json(injson: Path) -> float:
         json_obj = json.load(handle)
         return json_obj['filtering_result']['passed_filter_reads']
 
-def parse_depth_bed(bed: Path) -> Tuple[float, float]:
+
+def parse_depth_bed(bed: Path, segment: range) -> Tuple[float, float]:
     '''
     Purpose:
     --------
@@ -194,7 +200,8 @@ def parse_depth_bed(bed: Path) -> Tuple[float, float]:
         reader = csv.reader(handle, delimiter='\t')
         # Format is: Chrom, Pos, Depth
         for row in reader:
-            depth.append(int(row[2]))
+            if int(row[1]) in segment:
+                depth.append(int(row[2]))
 
     # Empty file return nothing
     if depth == []:
@@ -203,6 +210,7 @@ def parse_depth_bed(bed: Path) -> Tuple[float, float]:
     mean_dep = round(statistics.mean(depth), 2)
     median_dep = round(statistics.median(depth), 1)
     return mean_dep, median_dep
+
 
 def parse_consensus(fasta: SeqRecord) -> Tuple[int, float, int, bool]:
     '''
@@ -232,12 +240,14 @@ def parse_consensus(fasta: SeqRecord) -> Tuple[int, float, int, bool]:
         divisible = False
     return count_n, completeness, seq_len, divisible
 
+
 def _create_variantpos_dict(var: Path, var_range: range) -> dict:
     '''Create dict with keys "variant" and "range"'''
     return {
         'variant': var,
         'range': var_range
     }
+
 
 def parse_vcf(vcf_file: Path) -> Tuple[str, list, str, dict]:
     '''
@@ -352,11 +362,13 @@ def parse_vcf(vcf_file: Path) -> Tuple[str, list, str, dict]:
         return ';'.join(variants), variant_positions, var_count_dict
     return 'none', variant_positions, var_count_dict
 
+
 def range_overlap(r1: range, r2: range) -> bool:
     '''Return True if range2 overlaps range1'''
     x1, x2 = r1.start, r1.stop
     y1, y2 = r2.start, r2.stop
     return x1 <= y2 and y1 <= x2
+
 
 def check_primers(bed: Path, variant_locations: list) -> str:
     '''
@@ -400,6 +412,7 @@ def check_primers(bed: Path, variant_locations: list) -> str:
         return 'none'
     return ';'.join(primer_mutations)
 
+
 def _get_nextclade_row_dict(nextclade_csv: Path, sample: str) -> dict:
     '''
     Purpose:
@@ -426,11 +439,12 @@ def _get_nextclade_row_dict(nextclade_csv: Path, sample: str) -> dict:
                 return d
     return {}
 
-def get_genotype(nextclade_csv: Path, sample: str) -> str:
+
+def parse_n450_nextclade(nextclade_csv: Path, sample: str) -> Tuple[str, range]:
     '''
     Purpose:
     --------
-    Parse nextclade N450 CSV file to get the genotype
+    Parse nextclade N450 CSV file for genotype and other N450 metrics
 
     Parameters:
     -----------
@@ -442,12 +456,17 @@ def get_genotype(nextclade_csv: Path, sample: str) -> str:
     Returns:
     --------
     String nextclade clade
+    Range where N450 is located
     '''
     d = _get_nextclade_row_dict(nextclade_csv, sample)
     if d:
-        return d['clade']
+        genotype = d['clade']
+        # insertions structured as 0:BASES,450:BASES as all alignments will be 450 bp with the dataset used
+        to_n450 = len(d['insertions'].split(',')[0].split(':')[1])
+        return genotype, range(to_n450+1, to_n450+451)
     else:
-        return ''
+        return '', range(1,1)
+
 
 def get_custom_nextclade_vals(nextclade_csv: Path, sample: str) -> Tuple[str, str, str]:
     '''
@@ -481,11 +500,12 @@ def get_custom_nextclade_vals(nextclade_csv: Path, sample: str) -> Tuple[str, st
     else:
         return '', '', ''
 
-def get_dsid(matched_dsid: Path, sample: str) -> str:
+
+def parse_dsid_tsv(matched_dsid: Path, sample: str) -> str:
     '''
     Purpose:
     --------
-    Parse matched dsid tsv file to determine if the sample matched a known dsid
+    Parse matched dsid tsv file to determine if the sample matched a known dsid and get N450 completeness
 
     Parameters:
     -----------
@@ -497,6 +517,7 @@ def get_dsid(matched_dsid: Path, sample: str) -> str:
     Returns:
     --------
     String of DSID or its value in input table or No Data
+    Float N450 completeness
     '''
     # Check for a match
     with open(matched_dsid, 'r') as handle:
@@ -504,8 +525,34 @@ def get_dsid(matched_dsid: Path, sample: str) -> str:
         for d in reader:
             if d['sample'] == sample:
                 match = str(d['matched_dsid'])
-                return match
-    return 'No Data'
+                n450_completeness = float(d['completeness'])
+                return match, n450_completeness
+    return 'No Data', 0.00
+
+
+def grade_n450(dsid: str, n450_mean_depth: float, n450_completeness: float) -> str:
+    '''
+    Purpose:
+    --------
+    Determine if the sample N450 passes internal QC metrics
+
+    Parameters:
+    -----------
+    dsid - str
+        DSId value determined
+    n450_mean_depth - float
+        Mean n450 sequencing depth
+    n450_completeness - float
+        How complete the N450 region is
+
+    Returns:
+    --------
+    String N450 QC status of PASS / FAIL
+    '''
+    if (dsid in ['No Data', 'Incomplete', 'Ambiguous Base']) or (n450_mean_depth < 30) or (n450_completeness < 100):
+        return 'FAIL'
+    return 'PASS'
+
 
 def grade_qc(completeness: float, mean_dep: float, median_dep: float, divisible: bool,
              frameshift: bool, nonsense_mutation: bool, stop_mutation: bool, genotype_match: bool) -> str:
@@ -569,35 +616,44 @@ def grade_qc(completeness: float, mean_dep: float, median_dep: float, divisible:
         return ';'.join(qc_status)
     return 'PASS'
 
+
 def main() -> None:
     '''Run the program'''
     # Init Parser and set arguments
     parser = init_parser()
     args = parser.parse_args()
 
-    # Do something with the data
-    genotype = get_genotype(args.nextclade_n450, args.sample)
+    # Final read count information based on pipeline filtering tool
     if args.nanoq_json:
         num_input_reads = parse_nanoq_json(args.nanoq_json)
     elif args.fastp_json:
         num_input_reads = parse_fastp_json(args.fastp_json)
     else:
         num_input_reads = 0
+
     num_aligned_reads = get_read_count(args.bam)
     consensus = SeqIO.read(args.consensus, "fasta")
     count_n, completeness, seq_len, divisible = parse_consensus(consensus)
-    mean_dep, median_dep = parse_depth_bed(args.depth)
+    mean_dep, median_dep = parse_depth_bed(args.depth, range(1,seq_len+1)) # Use the whole genome for calc
     variants, variant_positions, var_count_dict = parse_vcf(args.vcf)
     frameshift, nonsense, stop_mutation = get_custom_nextclade_vals(args.nextclade_custom, args.sample)
 
     # Optional inputs
-    matched_dsid = 'NA'
-    if args.matched_dsid:
-        matched_dsid = get_dsid(args.matched_dsid, args.sample)
 
     seq_primer_overlap = 'NA'
     if args.seq_bed:
         seq_primer_overlap = check_primers(args.seq_bed, variant_positions)
+
+    # N450 dataset and DSId checks
+    matched_dsid, n450_completeness = parse_dsid_tsv(args.matched_dsid, args.sample)
+
+    genotype, n450_range = parse_n450_nextclade(args.nextclade_n450, args.sample)
+    n450_mean_depth = 0
+    n450_median_depth = 0
+
+    if n450_completeness > 0:
+        n450_mean_depth, n450_median_depth = parse_depth_bed(args.depth, n450_range)
+    n450_status = grade_n450(matched_dsid, n450_mean_depth, n450_completeness)
 
     # Grade qc
     frameshift_status = (frameshift != '')
@@ -640,10 +696,13 @@ def main() -> None:
         'mutated_stop_codon': [stop_mutation],
         'variants': [variants],
         'sequencing_primer_variants': [seq_primer_overlap],
+        'N450_completeness': [n450_completeness],
+        'N450_mean_depth': [n450_mean_depth],
+        'N450_status' :[n450_status],
         'qc_status': [qc_status],
-        'irida_id': [args.irida_id],
         'N450_fasta': [f">{args.sample}-N450\n{n450_seq}"],
-        'genome_fasta': [f">{args.sample}\n{consensus.seq.upper()}"]
+        'genome_fasta': [f">{args.sample}\n{consensus.seq.upper()}"],
+        'irida_id': [args.irida_id]
     }
     df = pd.DataFrame.from_dict(final)
     df.to_csv(f'{args.sample}.qc.csv', index=False)

@@ -25,10 +25,12 @@ process COMPARE_INTERNAL_DSID {
     path "versions.yml", emit: versions
 
     script:
+    // Add known dsid designations if we have them
+    def dsidArg = id_fasta ? "--dsid_fasta $id_fasta" : ""
     """
     compare_dsid.py \\
         --fasta $n450_fasta \\
-        --dsid_fasta $id_fasta \\
+        $dsidArg \\
         --write_novel
 
     cat <<-END_VERSIONS > versions.yml

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-'''Compare all sample N450 sequences to reference database'''
+'''Compare all sample N450 sequences to reference database and assign new ones a hash dsid'''
 import argparse
 import csv
 import hashlib
@@ -16,18 +16,18 @@ def init_parser() -> argparse.ArgumentParser:
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-d',
-        '--dsid_fasta',
-        required=True,
-        type=Path,
-        help='Path to input DSID Fasta database'
-    )
-    parser.add_argument(
         '-f',
         '--fasta',
         required=True,
         type=Path,
         help='Path to input multifasta file to check dsids for'
+    )
+    parser.add_argument(
+        '-d',
+        '--dsid_fasta',
+        required=False,
+        type=Path,
+        help='Path to input DSID Fasta database'
     )
     parser.add_argument(
         '-o',
@@ -147,8 +147,10 @@ def main():
     parser = init_parser()
     args = parser.parse_args()
 
-    # Create DSID Dict
-    dsid_seqs = load_dsids(args.dsid_fasta)
+    # Create DSID Dict if we have data
+    dsid_seqs = {}
+    if args.dsid_fasta:
+        dsid_seqs = load_dsids(args.dsid_fasta)
 
     # Label and output
     novel_seqs = label_seqs(args.fasta, dsid_seqs, args.outfile)

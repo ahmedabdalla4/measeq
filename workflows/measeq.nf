@@ -158,17 +158,14 @@ workflow MEASEQ {
     //
     // MODULE: Compare to optional internal DSID fasta file to get DSID number
     //
-    ch_dsid_results = Channel.empty()
-    if( params.dsid_fasta ) {
-        COMPARE_INTERNAL_DSID(
-            ADJUST_N450_FASTA_HEADER.out.consensus
-                .map{ it -> it[1] }
-                .collectFile(name: 'N450.fasta', sort: { it.baseName }),
-            ch_id_fasta
-        )
-        ch_dsid_results = COMPARE_INTERNAL_DSID.out.dsid_tsv
-        ch_versions = ch_versions.mix(COMPARE_INTERNAL_DSID.out.versions.first())
-    }
+    COMPARE_INTERNAL_DSID(
+        ADJUST_N450_FASTA_HEADER.out.consensus
+            .map{ it -> it[1] }
+            .collectFile(name: 'N450.fasta', sort: { it.baseName }),
+        ch_id_fasta
+    )
+    ch_dsid_results = COMPARE_INTERNAL_DSID.out.dsid_tsv
+    ch_versions = ch_versions.mix(COMPARE_INTERNAL_DSID.out.versions.first())
 
     //
     // MODULE: Summarize all of the sample data into 1 CSV file per sample
@@ -182,7 +179,7 @@ workflow MEASEQ {
             .join(NEXTCLADE_RUN_CUSTOM.out.csv, by: [0])
             .join(ch_vcf, by: [0])
             .join(ch_read_json, by: [0]),
-        ch_dsid_results.collect().ifEmpty([]),
+        ch_dsid_results.collect(),
         ch_genotype,
         ch_primer_bed.collect().ifEmpty([])
     )

@@ -4,7 +4,7 @@ nextflow_pipeline {
     name "Full Pipeline NF-Tests for MeaSeq"
     script "main.nf"
 
-    //--- Test 1
+    //--- Test 1 ----------------------------------------------------------------------------
     test("No platform specified") {
         tag "fail"
 
@@ -24,7 +24,7 @@ nextflow_pipeline {
         }
     }
 
-    //--- Test 2
+    //--- Test 2 ----------------------------------------------------------------------------
     test("No Input Specified") {
         tag "fail"
 
@@ -44,7 +44,7 @@ nextflow_pipeline {
         }
     }
 
-    //--- Test 3
+    //--- Test 3 ----------------------------------------------------------------------------
     test("Missing Samplesheet Data") {
         tag "fail"
 
@@ -65,7 +65,7 @@ nextflow_pipeline {
         }
     }
 
-    //--- Test 4
+    //--- Test 4 ----------------------------------------------------------------------------
     test("Illumina Amplicon Data with Sample Name Completion") {
         tag "success"
 
@@ -96,8 +96,8 @@ nextflow_pipeline {
             // Using the first 10 columns only to get to variants count
             lines = path("$launchDir/results/overall.qc.csv").text
             assert lines.contains("sample,genotype,matched_dsid,num_input_reads,num_aligned_reads,num_consensus_n,genome_completeness_percent,mean_sequencing_depth,median_sequencing_depth,total_variants,")
-            assert lines.contains("sample1,D8,NA,40476,39026,224,98.59,349.06,313.0,269,")
-            assert lines.contains("sample2,D8,NA,56368,54181,233,98.53,484.7,483.0,273,")
+            assert lines.contains("sample1,D8,Novel-bcb39a9,40476,39026,224,98.59,349.06,313.0,269,")
+            assert lines.contains("sample2,D8,Novel-bcb39a9,56368,54181,233,98.53,484.7,483.0,273,")
 
             // Intermediate generated reference files
             assert path("$launchDir/results/reference/amplicon.bed").exists()
@@ -142,13 +142,15 @@ nextflow_pipeline {
             assert iridanext_global.findAll { it.path == "MeaSeq_Report.html" }.size() == 1
             assert iridanext_global.findAll { it.path == "pipeline_info/measeq_software_mqc_versions.yml" }.size() == 1
             assert iridanext_global.findAll { it.path == "Amplicon-Summary-MultiQC-Report_multiqc_report.html" }.size() == 1
+            assert iridanext_global.findAll { it.path == "overall.xlsx" }.size() == 1
+            assert iridanext_global.findAll { it.path == "novel_dsids.tsv" }.size() == 1
 
             assert iridanext_samples.add_sample1.findAll { it.path == "consensus/sample1.N450.fasta" }.size() == 1
             assert iridanext_samples.add_sample1.findAll { it.path == "consensus/sample1.consensus.fasta" }.size() == 1
             assert iridanext_samples.add_sample1.findAll { it.path == "vcf/processed_vcf/sample1.processed.norm.vcf.gz" }.size() == 1
 
             assert iridanext_metadata.add_sample1.genotype == "D8"
-            assert iridanext_metadata.add_sample1.matched_dsid == "NA"
+            assert iridanext_metadata.add_sample1.matched_dsid == "Novel-bcb39a9"
             assert iridanext_metadata.add_sample1.num_input_reads == "40476"
             assert iridanext_metadata.add_sample1.num_aligned_reads == "39026"
             assert iridanext_metadata.add_sample1.num_consensus_n == "224"
@@ -160,6 +162,9 @@ nextflow_pipeline {
             assert iridanext_metadata.add_sample1.num_iupac == "0"
             assert iridanext_metadata.add_sample1.genome_length == "15894"
             assert iridanext_metadata.add_sample1.divisible_by_6 == "True"
+            assert iridanext_metadata.add_sample1.N450_completeness == "100.0"
+            assert iridanext_metadata.add_sample1.N450_mean_depth == "313.58"
+            assert iridanext_metadata.add_sample1.N450_status == "PASS"
             assert iridanext_metadata.add_sample1.qc_status == "PASS"
 
             // Pipeline info and tracking
@@ -169,7 +174,7 @@ nextflow_pipeline {
         }
     }
 
-    //--- Test 4
+    //--- Test 5 ----------------------------------------------------------------------------
     test("Nanopore NON-Amplicon Data Completion") {
         tag "success"
 
@@ -200,7 +205,7 @@ nextflow_pipeline {
             // Using the first 10 columns only to get to variants count
             lines = path("$launchDir/results/overall.qc.csv").text
             assert lines.contains("sample,genotype,matched_dsid,num_input_reads,num_aligned_reads,num_consensus_n,genome_completeness_percent,mean_sequencing_depth,median_sequencing_depth,total_variants,")
-            assert lines.contains("sample1,D8,NA,9357,9353,3,99.98,385.07,239.0,274,")
+            assert lines.contains("sample1,D8,Novel-65d31ec,9357,9353,3,99.98,385.07,239.0,274,")
 
             // Intermediate generated reference files
             assert path("$launchDir/results/reference/genome.bed").exists()
@@ -235,13 +240,15 @@ nextflow_pipeline {
 
             assert iridanext_global.findAll { it.path == "MeaSeq_Report.html" }.size() == 1
             assert iridanext_global.findAll { it.path == "pipeline_info/measeq_software_mqc_versions.yml" }.size() == 1
+            assert iridanext_global.findAll { it.path == "overall.xlsx" }.size() == 1
+            assert iridanext_global.findAll { it.path == "novel_dsids.tsv" }.size() == 1
 
             assert iridanext_samples.sample1.findAll { it.path == "consensus/sample1.N450.fasta" }.size() == 1
             assert iridanext_samples.sample1.findAll { it.path == "consensus/sample1.consensus.fasta" }.size() == 1
             assert iridanext_samples.sample1.findAll { it.path == "vcf/final/sample1.pass.norm.vcf.gz" }.size() == 1
 
             assert iridanext_metadata.sample1.genotype == "D8"
-            assert iridanext_metadata.sample1.matched_dsid == "NA"
+            assert iridanext_metadata.sample1.matched_dsid == "Novel-65d31ec"
             assert iridanext_metadata.sample1.num_input_reads == "9357"
             assert iridanext_metadata.sample1.num_aligned_reads == "9353"
             assert iridanext_metadata.sample1.num_consensus_n == "3"
@@ -253,6 +260,9 @@ nextflow_pipeline {
             assert iridanext_metadata.sample1.num_iupac == "0"
             assert iridanext_metadata.sample1.genome_length == "15894"
             assert iridanext_metadata.sample1.divisible_by_6 == "True"
+            assert iridanext_metadata.sample1.N450_completeness == "100.0"
+            assert iridanext_metadata.sample1.N450_mean_depth == "217.72"
+            assert iridanext_metadata.sample1.N450_status == "PASS"
             assert iridanext_metadata.sample1.qc_status == "PASS"
 
             // Pipeline info and tracking
