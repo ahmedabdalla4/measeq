@@ -72,7 +72,15 @@ dsid_dt <- dsid_df %>%
         list(className = 'dt-left', targets = "_all")
       )
     )
-  )
+  ) %>%
+  # Bars to show at a glance
+    formatStyle(
+      'N450 Completeness',
+      background = styleColorBar(range(0,100), 'lightblue', angle = -90),
+      backgroundSize = '88% 88%',
+      backgroundRepeat = 'no-repeat',
+      backgroundPosition = 'left'
+    )
 
 dsid_dt
 ```
