@@ -462,10 +462,12 @@ def parse_n450_nextclade(nextclade_csv: Path, sample: str) -> Tuple[str, range]:
     if d:
         genotype = d['clade']
         # insertions structured as 0:BASES,450:BASES as all alignments will be 450 bp with the dataset used
-        to_n450 = len(d['insertions'].split(',')[0].split(':')[1])
+        to_n450 = 0
+        if ',' in d['insertions']:
+            to_n450 = len(d['insertions'].split(',')[0].split(':')[1])
         return genotype, range(to_n450+1, to_n450+451)
     else:
-        return '', range(1,1)
+        return '', range(1,452)
 
 
 def get_custom_nextclade_vals(nextclade_csv: Path, sample: str) -> Tuple[str, str, str]:
