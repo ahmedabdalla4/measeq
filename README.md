@@ -177,6 +177,8 @@ GTCAGTTCCACATTGGCATCAGAACTCG
 GTCAGTTCCACAGTGGCATCTGAACTCG
 ```
 
+If this parameter is not given, the DSIds will still be generated as hashes to group up samples in the dsid.tsv and in the final report.
+
 ### More Run Options
 
 For more detailed running options including adding metadata, adjusting parameters, adding in DSID matches, and more, please refer to [the usage docs](docs/usage.md).
