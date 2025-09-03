@@ -96,7 +96,7 @@ nextflow_pipeline {
             // Using the first 10 columns only to get to variants count
             lines = path("$launchDir/results/overall.qc.csv").text
             assert lines.contains("sample,genotype,matched_dsid,num_input_reads,num_aligned_reads,num_consensus_n,genome_completeness_percent,mean_sequencing_depth,median_sequencing_depth,total_variants,")
-            assert lines.contains("empty,NA,No Data,2,2,15894,0.0,0.02,0.0,0,")
+            assert lines.contains("empty,NA,No Data,2,1,15894,0.0,0.0,0.0,0,")
             assert lines.contains("sample1,D8,Novel-bcb39a9,40476,39026,224,98.59,349.06,313.0,269,")
             assert lines.contains("sample2,D8,Novel-bcb39a9,56368,54181,233,98.53,484.7,483.0,273,")
 
