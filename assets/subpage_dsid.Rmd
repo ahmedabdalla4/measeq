@@ -7,12 +7,15 @@ DSId Summary
 
 ### {-}
 
-```{r dsid_table}
-# Select the 3 needed cols
+```{r dsid_summary_table}
+# Select the needed cols
 dsid_df <- select(summary_df,
   Sample,
   Genotype,
-  `Matched DSId`
+  `Matched DSId`,
+  `N450 Completeness`,
+  `N450 Mean Depth`,
+  `N450 Status`
 )
 
 # Group and sort
@@ -22,7 +25,7 @@ dsid_grouped_df <- dsid_df %>%
   summarise(Count = n(), .groups = "drop")
 
 # Create normal DT like other parts have
-dsid_dt <- dsid_grouped_df %>%
+dsid_sum_dt <- dsid_grouped_df %>%
   datatable(rownames = FALSE,
     caption = htmltools::tags$caption(
       style = 'caption-side: top',
@@ -45,6 +48,39 @@ dsid_dt <- dsid_grouped_df %>%
     backgroundRepeat = 'no-repeat',
     backgroundPosition = 'left'
   )
+
+dsid_sum_dt
+```
+
+## Row
+
+### {-}
+
+```{r dsid_sample_table}
+# Create normal DT like other parts have
+dsid_dt <- dsid_df %>%
+  datatable(rownames = FALSE,
+    caption = htmltools::tags$caption(
+      style = 'caption-side: top',
+      htmltools::strong('Table IIII: '), 'DSId Sample Table'
+    ),
+    options = list(
+      pageLength = 20,
+      scrollX = FALSE,
+      scrollY = "",
+      columnDefs = list(
+        list(className = 'dt-left', targets = "_all")
+      )
+    )
+  ) %>%
+  # Bars to show at a glance
+    formatStyle(
+      'N450 Completeness',
+      background = styleColorBar(range(0,100), 'lightblue', angle = -90),
+      backgroundSize = '88% 88%',
+      backgroundRepeat = 'no-repeat',
+      backgroundPosition = 'left'
+    )
 
 dsid_dt
 ```

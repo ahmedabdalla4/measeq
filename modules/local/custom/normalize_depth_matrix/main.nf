@@ -17,6 +17,7 @@ process NORMALIZE_DEPTH_MATRIX {
     '''
     Simple script to normalize and merge together all positional depth
     '''
+    import sys
     import pandas as pd
     from pathlib import Path
 
@@ -53,6 +54,15 @@ process NORMALIZE_DEPTH_MATRIX {
         else:
             outl.append(df[[name]])
 
+    # If everything is empty, just create 2 files with only col headers
+    if outl == []:
+        out_df_t = pd.DataFrame(columns=['', '1', '2', '3'])
+        concat_df = pd.DataFrame(columns=['position', 'mean', 'q1', 'q3', 'IQR'])
+        out_df_t.to_csv('sample_positional_normalized_depth.csv')
+        concat_df.to_csv('sample_positional_normalized_depth_stats.csv')
+        sys.exit(0)
+
+    # Summarize
     concat_df = pd.concat(outl, axis=1)
     concat_df = concat_df.set_index('position')
     out_df = concat_df.copy()

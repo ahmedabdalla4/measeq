@@ -97,6 +97,9 @@ email <- params$email
 phone <- params$phone
 website <- params$website
 
+# Run contact sheet
+run_contact <- any(nzchar(name), nzchar(phone), nzchar(email), nzchar(website))
+
 # Create Header function
 catHeader <- function(text = "", level = 3) {
   cat(
@@ -242,16 +245,16 @@ run_dsid <- any(!is.na(summary_df$matched_dsid) & nzchar(summary_df$matched_dsid
 # Gene Info based on final length
 #  Currently only full genomes (~15894bp) and genomes with the 5' and 3' UTR cut (~15678bp) as references so
 #  use that to determine location of gene boxes for some plots instead of needing to load in a GFF (at the moment)
-gene_label <- c("N", "P/V/C", "M", "F", "H", "L")
-gene_color <- c("#0A9F9D", "#C52E19", "#6C8645", "#F98400", "#5BBCD6", "#F2AD00")
+gene_label <- c("N", "N450", "P/V/C", "M", "F", "H", "L")
+gene_color <- c("#0A9F9D", "#044342", "#C52E19", "#6C8645", "#F98400", "#5BBCD6", "#F2AD00")
 if ( max(summary_df$genome_length) < 15800 ) {
-  gene_start <- c(1, 1700, 3331, 5351, 7164, 9127)
-  gene_end <- c(1578, 3233, 4338, 7003, 9017, 15678)
-  gene_label_loc <- c(789, 2466, 3834, 6177, 8090, 12402)
+  gene_start <- c(1, 1128, 1700, 3331, 5351, 7164, 9127)
+  gene_end <- c(1578, 1578, 3233, 4338, 7003, 9017, 15678)
+  gene_label_loc <- c(789, 1353, 2466, 3834, 6177, 8090, 12402)
 } else {
-  gene_start <- c(108, 1807, 3438, 5458, 7271, 9234)
-  gene_end <- c(1685, 3330, 4445, 7110, 9124, 15785)
-  gene_label_loc <- c(896, 2568, 3941, 6284, 8197, 12509)
+  gene_start <- c(108, 1235, 1807, 3438, 5458, 7271, 9234)
+  gene_end <- c(1685, 1685, 3330, 4445, 7110, 9124, 15785)
+  gene_label_loc <- c(896, 1460, 2568, 3941, 6284, 8197, 12509)
 }
 # Gene Rectangles for Plotly
 gene_shapes_normal <- lapply(seq_along(gene_start), function(i) {
@@ -311,6 +314,9 @@ summary_df <- summary_df %>%
     "Frameshifts" = frameshifts,
     "Premature Stop Codon" = nonsense_mutation,
     "Mutated Stop Codon" = mutated_stop_codon,
+    "N450 Completeness" = N450_completeness,
+    "N450 Mean Depth" = N450_mean_depth,
+    "N450 Status" = N450_status,
     "QC Status" = qc_status,
     "Run Status" = run_status,
     "Run Summary" = run_summary
@@ -360,6 +366,7 @@ metrics_df <- select(summary_df,
   `Total Variants`,
   `Genome Completeness (%)`,
   `Genome Length`,
+  `N450 Status`,
   `QC Status`,
   status_colour_code
 )
@@ -466,22 +473,25 @@ p <- ggplot(summary_depth_df, aes(x = position)) +
     panel.grid.major.x = element_line(color = "#dadce0", linetype = "dotted")
   )
 
-# Add Genes - Going to have to rethink this as its scale is a bit wonky with the data
-# p <- p +
-#   geom_rect(
-#     data = gene_df,
-#     aes(xmin = start, xmax = end, ymin = -4, ymax = -1.5),
-#     fill = gene_df$color,
-#     color = "black",
-#     inherit.aes = FALSE
-#   ) +
-#   geom_text(
-#     data = gene_df,
-#     aes(x = label_pos, y = -6.5, label = label),
-#     size = 3,
-#     inherit.aes = FALSE
-#   ) +
-#   expand_limits(y = -5)
+# Add Genes - Scale based on max
+box_size_adj <- round(max(2.5, 0.0425 * max(summary_depth_df$ymax)), 0)
+box_ymin <- -5 - box_size_adj
+text_y <- -5 - box_size_adj * 2.15
+
+p <- p +
+  geom_rect(
+    data = gene_df,
+    aes(xmin = start, xmax = end, ymin = box_ymin, ymax = -5),
+    fill = gene_df$color,
+    color = "black",
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    data = gene_df,
+    aes(x = label_pos, y = text_y, label = label),
+    size = 3,
+    inherit.aes = FALSE
+  )
 
 p
 ```
@@ -618,83 +628,9 @@ version_dt <- df %>%
 version_dt
 ```
 
-Contact Information
-=================================
+<!-- ---------------------------------------------------------- -->
+<!-- Contact Page if used                                       -->
+<!-- ---------------------------------------------------------- -->
 
-<style>
-/* Flip Box Container */
-.flip-box {
-  background-color: transparent;
-  width: 700px;
-  height: 400px;
-  border: 1px solid #ccc;
-  perspective: 1000px;
-  margin: auto;
-}
-
-/* Flip Box Inner */
-.flip-box-inner {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  text-align: center;
-  transition: transform 0.6s;
-  transform-style: preserve-3d;
-}
-
-/* Flip Box on Hover */
-.flip-box:hover .flip-box-inner {
-  transform: rotateY(180deg);
-}
-
-/* Front & Back Side */
-.flip-box-front, .flip-box-back {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  backface-visibility: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-}
-
-/* Front Side */
-.flip-box-front {
-  background-color: #2C3E50;
-  color: white !important;
-}
-
-/* Back Side */
-.flip-box-back {
-  background-color: #95A5A6;
-  color: white !important;
-  transform: rotateY(180deg);
-}
-</style>
-
-
-```{r contact-info, warnings=FALSE, echo=FALSE}
-if (any(nzchar(name), nzchar(phone), nzchar(email), nzchar(website))){
-  back_content <- div(
-    if (name != "") h2(name),
-    if (email != "") p(strong("Email:"), email),
-    if (phone != "") p(strong("Phone Number:"), phone),
-    if (website != "") p("Website: ", a(href= paste0(website), website))
-  )
-} else {
-  back_content <- div(
-    h2("Contact Information Not Provided")
-  )
-}
-flip_box( 
-  front = div( 
-    h2("Contact Info"), p("Click to reveal details"), icon("address-card", class = "fa-6x") 
-  ), 
-  back = back_content
-)
+```{r contact_page, child="subpage_contact.Rmd", params=params, eval=run_contact}
 ```
-
-<footer>
-`r footer_str`
-</footer>
