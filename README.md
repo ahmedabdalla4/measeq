@@ -25,12 +25,13 @@
 
 ## Current Updates
 
-### _2025-07-18_
+### _2025-09-03_
 
 - Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
 - Dependency management fully available with `Docker`, `Singularity`, and `Conda`
 - Can assign DSIds from reference multi-fasta file and give new N450s a `Novel-hash` label
   - With `--dsid_fasta <FASTA>`
+  - If no DISd fasta file available, it will assign all N450 as `Novel-hash` with hashes matching if the sequence is the same
 
 ## Introduction
 
