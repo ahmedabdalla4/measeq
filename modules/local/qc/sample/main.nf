@@ -29,8 +29,7 @@ process MAKE_SAMPLE_QC_CSV {
     } else {
         readJsonArg = "--nanoq_json $read_json"
     }
-    // Add matched dsid if we have it
-    def dsidArg = dsid ? "--matched_dsid $dsid" : ""
+
     // Add primer bed if we have it
     def seqPrimerArg = primer_bed ? "--seq_bed $primer_bed" : ""
 
@@ -47,8 +46,8 @@ process MAKE_SAMPLE_QC_CSV {
         --nextclade_custom $nextclade_full \\
         --genotype $genotype \\
         --vcf $vcf \\
+        --matched_dsid $dsid \\
         $readJsonArg \\
-        $dsidArg \\
         $seqPrimerArg \\
         --sample $meta.id \\
         --irida_id $meta.irida_id

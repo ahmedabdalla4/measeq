@@ -1,0 +1,82 @@
+<!-- Dynamically create dsid tab if we have that information -->
+
+Contact Information
+=================================
+
+<style>
+/* Flip Box Container */
+.flip-box {
+  background-color: transparent;
+  width: 700px;
+  height: 400px;
+  border: 1px solid #ccc;
+  perspective: 1000px;
+  margin: auto;
+}
+
+/* Flip Box Inner */
+.flip-box-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+/* Flip Box on Hover */
+.flip-box:hover .flip-box-inner {
+  transform: rotateY(180deg);
+}
+
+/* Front & Back Side */
+.flip-box-front, .flip-box-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+/* Front Side */
+.flip-box-front {
+  background-color: #2C3E50;
+  color: white !important;
+}
+
+/* Back Side */
+.flip-box-back {
+  background-color: #95A5A6;
+  color: white !important;
+  transform: rotateY(180deg);
+}
+</style>
+
+
+```{r contact-info, warnings=FALSE, echo=FALSE}
+if (any(nzchar(name), nzchar(phone), nzchar(email), nzchar(website))){
+  back_content <- div(
+    if (name != "") h2(name),
+    if (email != "") p(strong("Email:"), email),
+    if (phone != "") p(strong("Phone Number:"), phone),
+    if (website != "") p("Website: ", a(href= paste0(website), website))
+  )
+} else {
+  back_content <- div(
+    h2("Contact Information Not Provided")
+  )
+}
+flip_box( 
+  front = div( 
+    h2("Contact Info"), p("Click to reveal details"), icon("address-card", class = "fa-6x") 
+  ), 
+  back = back_content
+)
+```
+
+<footer>
+`r footer_str`
+</footer>

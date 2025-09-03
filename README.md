@@ -25,20 +25,23 @@
 
 ## Current Updates
 
-### _2025-07-18_
+### _2025-09-03_
 
 - Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
 - Dependency management fully available with `Docker`, `Singularity`, and `Conda`
 - Can assign DSIds from reference multi-fasta file and give new N450s a `Novel-hash` label
   - With `--dsid_fasta <FASTA>`
+  - If no DISd fasta file available, it will assign all N450 as `Novel-hash` with hashes matching if the sequence is the same
 
 ## Introduction
 
-**MeaSeq** is a measles virus (MeV) specific pipeline established for use in surveillance and outbreak analysis. This pipeline utilizes a reference-based read mapping approach for Whole Genome or Amplicon sequencing data from both the Illumina and Nanopore platforms to output MeV consensus sequences, variant data, sequencing qualtiy information, and custom summary reports.
+**MeaSeq** is a measles virus (MeV) specific pipeline established for use in surveillance and outbreak analysis. This pipeline utilizes a reference-based read mapping approach for Whole Genome or Amplicon sequencing data from both the Illumina and Nanopore platforms to output MeV consensus sequences (whole genome and N450), variant data, sequencing qualtiy information, and custom summary reports.
 
 ![MeaSeq Workflow Diagram](./MeaSeq_Workflow_COG.png)
 
 This project aims to implement an open-source, easy to run, MeV Whole Genome Sequence analysis pipeline that works on both Illumina and Nanopore data. The end goal of this project is to deploy a standardized pipeline focused on final reporting metrics and plots for rapid detection and response to MeV outbreaks in Canada and abroad.
+
+The basis of the pipeline come from two other pipelines. The illumina side from nf-cores' [viralrecon pipeline](https://github.com/nf-core/viralrecon) and for nanopore the [artic pipeline](https://github.com/artic-network/fieldbioinformatics). Most additions were added for measles-specific QC or reporting.
 
 ## Installation
 
@@ -175,6 +178,8 @@ GTCAGTTCCACATTGGCATCAGAACTCG
 > 2418 B3
 GTCAGTTCCACAGTGGCATCTGAACTCG
 ```
+
+If this parameter is not given, the DSIds will still be generated as hashes to group up samples in the dsid.tsv and in the final report.
 
 ### More Run Options
 
