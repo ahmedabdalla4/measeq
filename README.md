@@ -35,11 +35,13 @@
 
 ## Introduction
 
-**MeaSeq** is a measles virus (MeV) specific pipeline established for use in surveillance and outbreak analysis. This pipeline utilizes a reference-based read mapping approach for Whole Genome or Amplicon sequencing data from both the Illumina and Nanopore platforms to output MeV consensus sequences, variant data, sequencing qualtiy information, and custom summary reports.
+**MeaSeq** is a measles virus (MeV) specific pipeline established for use in surveillance and outbreak analysis. This pipeline utilizes a reference-based read mapping approach for Whole Genome or Amplicon sequencing data from both the Illumina and Nanopore platforms to output MeV consensus sequences (whole genome and N450), variant data, sequencing qualtiy information, and custom summary reports.
 
 ![MeaSeq Workflow Diagram](./MeaSeq_Workflow_COG.png)
 
 This project aims to implement an open-source, easy to run, MeV Whole Genome Sequence analysis pipeline that works on both Illumina and Nanopore data. The end goal of this project is to deploy a standardized pipeline focused on final reporting metrics and plots for rapid detection and response to MeV outbreaks in Canada and abroad.
+
+The basis of the pipeline come from two other pipelines. The illumina side from nf-cores' [viralrecon pipeline](https://github.com/nf-core/viralrecon) and for nanopore the [artic pipeline](https://github.com/artic-network/fieldbioinformatics). Most additions were added for measles-specific QC or reporting.
 
 ## Installation
 

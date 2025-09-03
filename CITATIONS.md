@@ -10,6 +10,12 @@
 
 ## Pipeline tools
 
+[Artic](https://github.com/artic-network/fieldbioinformatics)
+
+[Clair3](https://github.com/HKU-BAL/Clair3)
+
+> Zheng, Z.; Li, S.; Su, J.; Leung, A. W.-S.; Lam, T.-W.; Luo, R. Symphonizing Pileup and Full-Alignment for Deep Learning-Based Long-Read Variant Calling. Nature Computational Science 2022, 2 (12), 797–803. https://doi.org/10.1038/s43588-022-00387-x.
+
 [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
 
 > Andrews S. (2010). FastQC: a quality control tool for high throughput sequence data. Available online at: http://www.bioinformatics.babraham.ac.uk/projects/fastqc
