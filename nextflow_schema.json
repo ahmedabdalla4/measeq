@@ -91,6 +91,10 @@
                     "description": "Minimum thresholds to keep an indel",
                     "default": 0.6,
                     "fa_icon": "far fa-minus-square"
+                },
+                "remove_duplicates": {
+                    "type": "boolean",
+                    "description": "Mark and remove optical duplicates with picard markduplicates"
                 }
             }
         },
@@ -134,7 +138,8 @@
                     "pattern": "^\\S+\\.tsv$",
                     "format": "file-path",
                     "description": "Path to metadata TSV file containing at minimum 'sample' column to add to final output",
-                    "fa_icon": "fas fa-file-csv"
+                    "fa_icon": "fas fa-file-csv",
+                    "hidden": true
                 },
                 "dsid_fasta": {
                     "type": "string",

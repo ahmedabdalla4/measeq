@@ -28,6 +28,7 @@ The pipeline is built using Nextflow and processes data using the following step
   - [Fastp](#fastp) - Trim paired-end illumina reads
   - [BWAMem2](#bwamem2) - Map to the provided measles reference
   - [iVar Trim](#ivar-trim) - Amplicon only, trim the BAM file by primer position
+  - [Picard MarkDuplicates](#picard-markduplicates) - Remove duplicate reads from BAM file
   - [Freebayes](#freebayes) - Call variants from the BAM file
   - [Process VCF](#process-vcf) - Process the variants called from the BAM file using python script and `bcftools norm`
   - [Make Depth Mask](#make-depth-mask) - Determine sites below the minimum depth to mask as Ns
@@ -180,6 +181,19 @@ Using the N450 dataset, the input reference is typed so that the N450 region can
 </details>
 
 [iVar](http://gensoft.pasteur.fr/docs/ivar/1.0/manualpage.html) is used to trim amplicon primer sequences from the aligned reads. iVar uses the primer positions supplied in `--primer_bed` to soft clip primer sequences from a coordinate sorted BAM file.
+
+#### Picard MarkDuplicates
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `bam/picard`
+  - `<SAMPLE>.markduplicate.sorted.bam`: Identified candidate variants from the alignment
+  - `<SAMPLE>.MarkDuplicates.metrics.txt`
+
+</details>
+
+[Picard MarkDuplicates](https://gatk.broadinstitute.org/hc/en-us/articles/360037052812-MarkDuplicates-Picard) locates, tags, and removes duplicate reads from BAM file
 
 #### Freebayes
 
