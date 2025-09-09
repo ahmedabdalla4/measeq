@@ -106,6 +106,7 @@ workflow MEASEQ {
         //
         ILLUMINA_CONSENSUS(
             ch_reference,
+            ch_reference_fai,
             ch_input_fastqs,
             ch_primer_bed
         )

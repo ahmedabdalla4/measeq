@@ -8,19 +8,21 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 // Initial Steps
-include { FASTP                   } from '../../../modules/nf-core/fastp/main'
+include { FASTP                     } from '../../../modules/nf-core/fastp/main'
 // Amplicon Specific
-include { IVAR_TRIM               } from '../../../modules/local/ivar/trim/main'
+include { IVAR_TRIM                 } from '../../../modules/local/ivar/trim/main'
 // Variant Calling and Consensus Generation
-include { BWAMEM2_INDEX           } from '../../../modules/nf-core/bwamem2/index/main'
-include { BWAMEM2_MEM             } from '../../../modules/nf-core/bwamem2/mem/main'
-include { SAMTOOLS_INDEX          } from '../../../modules/nf-core/samtools/index/main'
-include { FREEBAYES               } from '../../../modules/local/freebayes/main'
-include { PROCESS_VCF             } from '../../../modules/local/process_vcf/main'
-include { CUSTOM_MAKE_DEPTH_MASK  } from '../../../modules/local/artic/subcommands/main'
+include { BWAMEM2_INDEX             } from '../../../modules/nf-core/bwamem2/index/main'
+include { BWAMEM2_MEM               } from '../../../modules/nf-core/bwamem2/mem/main'
+include { SAMTOOLS_INDEX            } from '../../../modules/nf-core/samtools/index/main'
+include { BAM_MARKDUPLICATES_PICARD } from '../../../subworkflows/nf-core/bam_markduplicates_picard/main'
+include { BAM_STATS_SAMTOOLS        } from '../../../subworkflows/nf-core/bam_stats_samtools/main'
+include { FREEBAYES                 } from '../../../modules/local/freebayes/main'
+include { PROCESS_VCF               } from '../../../modules/local/process_vcf/main'
+include { CUSTOM_MAKE_DEPTH_MASK    } from '../../../modules/local/artic/subcommands/main'
 include { BCFTOOLS_CONSENSUS as BCFTOOLS_CONSENSUS_AMBIGUOUS } from '../../../modules/nf-core/bcftools/consensus/main'
 include { BCFTOOLS_CONSENSUS as BCFTOOLS_CONSENSUS_FINAL     } from '../../../modules/nf-core/bcftools/consensus/main'
-include { ADJUST_FASTA_HEADER     } from '../../../modules/local/artic/subcommands/main'
+include { ADJUST_FASTA_HEADER       } from '../../../modules/local/artic/subcommands/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -32,6 +34,7 @@ workflow ILLUMINA_CONSENSUS {
 
     take:
     ch_reference           // channel: [ [id], fasta ]
+    ch_reference_fai       // channel: [ fai ]
     ch_input_fastqs        // channel: [ [id, single_end], fastqs ]
     ch_primer_bed          // channel: [ bed ]
 
@@ -90,6 +93,30 @@ workflow ILLUMINA_CONSENSUS {
         )
         ch_bam_bai = IVAR_TRIM.out.bam
         ch_versions = ch_versions.mix(IVAR_TRIM.out.versions)
+    }
+
+    //
+    // SUBWORKFLOW: Mark duplicates if arg is given
+    //
+    if( params.remove_duplicates ) {
+        BAM_MARKDUPLICATES_PICARD(
+            ch_bam_bai.map{ it -> [ it[0], it[1] ]},
+            ch_reference,
+            ch_reference_fai.map{ [ [:], it ] }
+        )
+        ch_bam_bai = BAM_MARKDUPLICATES_PICARD.out.bam
+                        .join(BAM_MARKDUPLICATES_PICARD.out.bai, by: [0])
+        ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
+    } else {
+        //
+        // SUBWORKFLOW: Get samtools stats
+        //  These are also in the PICARD workflow
+        //
+        BAM_STATS_SAMTOOLS(
+            ch_bam_bai,
+            ch_reference
+        )
+        ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions)
     }
 
     //

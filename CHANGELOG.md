@@ -3,6 +3,13 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.1] - 2025-09-04
+
+### `Added`
+
+- nf-core Picard mark duplicates workflow as an optional parameter/workflow to use for illumina data [PR #15](https://github.com/phac-nml/measeq/pull/12)
+  - Along with this, added the bam stats samtools workflow to run even when the picard workflow isn't to keep outputs the same
+
 ## [v0.4.0] - 2025-09-03
 
 ### `Added`
@@ -15,11 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### `Adjusted`
 
-- Adjusted the DSId final report page to have a list of all individual sample calls and the summary data shown
-- Added the N450 status to the initial report summary page
-- Always run the DSId check even with no database fasta file
+- Adjusted the DSId final report page to have a list of all individual sample calls and the summary data shown [PR #12](https://github.com/phac-nml/measeq/pull/12)
+- Added the N450 status to the initial report summary page [PR #12](https://github.com/phac-nml/measeq/pull/12)
+- Always run the DSId check even with no database fasta file [PR #12](https://github.com/phac-nml/measeq/pull/12)
   - Everything will be labeled as `novel-hash` but it will group them up
-- Updated CI tests
+- Updated CI tests [PR #12](https://github.com/phac-nml/measeq/pull/12)
 
 ## [v0.3.2] - 2025-08-01
 
@@ -126,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - MeaSeq pipeline created and initial code added
 
+[v0.4.1]: https://github.com/phac-nml/measeq/releases/tag/0.4.1
 [v0.4.0]: https://github.com/phac-nml/measeq/releases/tag/0.4.0
 [v0.3.2]: https://github.com/phac-nml/measeq/releases/tag/0.3.2
 [v0.3.1]: https://github.com/phac-nml/measeq/releases/tag/0.3.1

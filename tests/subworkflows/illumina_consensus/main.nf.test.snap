@@ -1,0 +1,141 @@
+{
+    "Illumina Consensus Workflow with Optional": {
+        "content": [
+            {
+                "0": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.fastp.json:md5,1d9a3b007427f56a6d5fc93d2fef627d"
+                    ]
+                ],
+                "1": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.markduplicate.sorted.bam:md5,388d74ca14d00a4b4ca619f85396a075",
+                        "SRR7517490.markduplicate.sorted.bam.bai:md5,91bad09dcb2a82dad7df1fc90b5937e8"
+                    ]
+                ],
+                "2": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.consensus.fasta:md5,b437728bce7d66a321dfc8e5e28f7191"
+                    ]
+                ],
+                "3": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.processed.norm.vcf.gz:md5,73d7daa4a09407fa8dcc44dff7938130",
+                        "SRR7517490.processed.norm.vcf.gz.tbi:md5,21ad2ed2af13dcaf9937ee4473dbf1c9"
+                    ]
+                ],
+                "4": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.consensus.tsv:md5,23db965f16cc947449a19d5147cc02b5"
+                    ]
+                ],
+                "5": [
+                    "versions.yml:md5,108c483eb04df4e4c8616f823c50795d",
+                    "versions.yml:md5,1a9cdd93d1c5a674969fdf82c368134f",
+                    "versions.yml:md5,4e18c8a633c6481d327beccf9925d4c9",
+                    "versions.yml:md5,61fdb420d905cb00f846c025ea468909",
+                    "versions.yml:md5,6f46f778fb889cb5cb5e1099d72fdf2f",
+                    "versions.yml:md5,9a17d37bebe752f98074bc9a638585d5",
+                    "versions.yml:md5,a8750dd8fff337ebd54f07dbe871ceea",
+                    "versions.yml:md5,c5fd0015d26c7417c6afcacbd9811337",
+                    "versions.yml:md5,d7eaf9338bf5a5b71535a7bfb8781d1c",
+                    "versions.yml:md5,d9f955ee04b358d5055be5524bc88175",
+                    "versions.yml:md5,dc87aede296d539a1cfc7b71b2b98f59",
+                    "versions.yml:md5,e40c62a5c08231cddea44db358a42183",
+                    "versions.yml:md5,f05b8acfbb95465bf13c2dc66162e711",
+                    "versions.yml:md5,f43c8180f3532f4b350fd4b26bd2827d",
+                    "versions.yml:md5,f4d0707b0a58429cbda9684f6d02efb6"
+                ],
+                "bam_bai": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.markduplicate.sorted.bam:md5,388d74ca14d00a4b4ca619f85396a075",
+                        "SRR7517490.markduplicate.sorted.bam.bai:md5,91bad09dcb2a82dad7df1fc90b5937e8"
+                    ]
+                ],
+                "consensus": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.consensus.fasta:md5,b437728bce7d66a321dfc8e5e28f7191"
+                    ]
+                ],
+                "fastp_json": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.fastp.json:md5,1d9a3b007427f56a6d5fc93d2fef627d"
+                    ]
+                ],
+                "variants_tsv": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.consensus.tsv:md5,23db965f16cc947449a19d5147cc02b5"
+                    ]
+                ],
+                "vcf": [
+                    [
+                        {
+                            "id": "SRR7517490",
+                            "single_end": false
+                        },
+                        "SRR7517490.processed.norm.vcf.gz:md5,73d7daa4a09407fa8dcc44dff7938130",
+                        "SRR7517490.processed.norm.vcf.gz.tbi:md5,21ad2ed2af13dcaf9937ee4473dbf1c9"
+                    ]
+                ],
+                "versions": [
+                    "versions.yml:md5,108c483eb04df4e4c8616f823c50795d",
+                    "versions.yml:md5,1a9cdd93d1c5a674969fdf82c368134f",
+                    "versions.yml:md5,4e18c8a633c6481d327beccf9925d4c9",
+                    "versions.yml:md5,61fdb420d905cb00f846c025ea468909",
+                    "versions.yml:md5,6f46f778fb889cb5cb5e1099d72fdf2f",
+                    "versions.yml:md5,9a17d37bebe752f98074bc9a638585d5",
+                    "versions.yml:md5,a8750dd8fff337ebd54f07dbe871ceea",
+                    "versions.yml:md5,c5fd0015d26c7417c6afcacbd9811337",
+                    "versions.yml:md5,d7eaf9338bf5a5b71535a7bfb8781d1c",
+                    "versions.yml:md5,d9f955ee04b358d5055be5524bc88175",
+                    "versions.yml:md5,dc87aede296d539a1cfc7b71b2b98f59",
+                    "versions.yml:md5,e40c62a5c08231cddea44db358a42183",
+                    "versions.yml:md5,f05b8acfbb95465bf13c2dc66162e711",
+                    "versions.yml:md5,f43c8180f3532f4b350fd4b26bd2827d",
+                    "versions.yml:md5,f4d0707b0a58429cbda9684f6d02efb6"
+                ]
+            }
+        ],
+        "meta": {
+            "nf-test": "0.9.2",
+            "nextflow": "24.10.6"
+        },
+        "timestamp": "2025-09-08T11:01:20.65413838"
+    }
+}
