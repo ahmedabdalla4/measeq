@@ -25,7 +25,7 @@
 
 ## Current Updates
 
-### _2025-09-03_
+### _2025-09-09_
 
 - Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
 - Dependency management fully available with `Docker`, `Singularity`, and `Conda`
