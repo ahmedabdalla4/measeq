@@ -25,7 +25,7 @@
 
 ## Current Updates
 
-### _2025-09-03_
+### _2025-09-09_
 
 - Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
 - Dependency management fully available with `Docker`, `Singularity`, and `Conda`
@@ -214,10 +214,11 @@ More detailed steps are available in the [output docs](./docs/output.md)
    1. FastP
    2. BWAMem2
    3. iVar Trim (Amplicon input only)
-   4. Freebayes
-   5. Process Freebayes VCF
-   6. Make Depth Mask
-   7. Bcftools Consensus (Ambiguous and Consensus variants)
+   4. Picard MarkDuplicates (if parameter given to run)
+   5. Freebayes
+   6. Process Freebayes VCF
+   7. Make Depth Mask
+   8. Bcftools Consensus (Ambiguous and Consensus variants)
 4. Nextclade (N450 and Custom datasets, N450 fasta output)
 5. Samtools depth
 6. Compare DSId (Optional with `--dsid_fasta` parameter)

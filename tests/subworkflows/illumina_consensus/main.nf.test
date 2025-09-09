@@ -1,0 +1,67 @@
+nextflow_workflow {
+
+    name "Test of Illumina Consensus Subworkflow with Optional Params"
+    script "subworkflows/local/illumina_consensus/main.nf"
+    workflow "ILLUMINA_CONSENSUS"
+    tag "subworkflows"
+    tag "consensus"
+
+    test("Illumina Consensus Workflow with Optional") {
+        tag "success"
+        when {
+            workflow {
+                """
+                input[0] = Channel.of(
+                        [
+                            [id: "reference"],
+                            file("$baseDir/test_data/MH356245.1.reference.fasta")
+                        ]
+                    )
+                input[1] = Channel.of(
+                        file("$baseDir/test_data/MH356245.1.reference.fasta.fai")
+                    )
+                input[2] = Channel.of(
+                        [
+                            [id: "SRR7517490", single_end: false],
+                            [
+                                file("$baseDir/test_data/illumina_fastqs/SRR7517490_R1.fastq.gz"),
+                                file("$baseDir/test_data/illumina_fastqs/SRR7517490_R2.fastq.gz")
+                            ]
+                        ]
+                    )
+                input[3] = Channel.of(
+                        file("$baseDir/test_data/primer.bed")
+                    )
+                """
+            }
+            params {
+                outdir = "results"
+                platform = "illumina"
+                primer_bed = "$baseDir/test_data/primer.bed"
+                remove_duplicates = true
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success }
+            )
+
+            // Files exist
+            // Fastp
+            assert path("${launchDir}/results/fastp/SRR7517490.fastp.json").exists()
+            // BAM
+            assert path("${launchDir}/results/bam/ivar/SRR7517490.primertrimmed.sorted.bam").exists()
+            assert path("${launchDir}/results/bam/ivar/SRR7517490.primertrimmed.sorted.bam.bai").exists()
+            assert path("${launchDir}/results/bam/picard/SRR7517490.markduplicate.sorted.bam").exists()
+            assert path("${launchDir}/results/bam/picard/SRR7517490.markduplicate.sorted.MarkDuplicates.metrics.txt").exists()
+            // VCF
+            assert path("${launchDir}/results/vcf/processed_vcf/SRR7517490.ambiguous.norm.vcf.gz").exists()
+            assert path("${launchDir}/results/vcf/processed_vcf/SRR7517490.consensus.norm.vcf.gz").exists()
+            assert path("${launchDir}/results/vcf/processed_vcf/SRR7517490.consensus.tsv").exists()
+            assert path("${launchDir}/results/vcf/processed_vcf/SRR7517490.processed.norm.vcf.gz").exists()
+
+            // Consensus md5 --> If it matches, all variants were the same so intermediate files SHOULD be ok/the same (but not definitely)
+            assert path("${launchDir}/results/consensus/SRR7517490.consensus.fasta").md5 == "e2de931b1325ec3f78bb046790ba71c8"
+        }
+    }
+}
