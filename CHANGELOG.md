@@ -3,13 +3,19 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.4.2] - 2025-09-xx
+## [v0.4.2] - 2025-10-xx
 
-Adding in more focus on the N450 region per request
+Adding in more parameters to allow users more options in adjusting data analysis including:
+
+### `Added`
+
+- New parameters
+  - `--ivar_trim_min_read_length`
+  - `--min_alt_fraction_freeabyes`
+  - `--min_variant_qual_freebayes`
+- Minimum and Maximum thresholds for parameters in the `nextflow_schema`
 
 ### `Adjusted`
-
-
 
 ## [v0.4.1] - 2025-09-09
 

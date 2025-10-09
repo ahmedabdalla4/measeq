@@ -34,7 +34,7 @@ process PROCESS_VCF {
         -l ${params.min_ambiguity_threshold} \\
         -u ${params.max_ambiguity_threshold} \\
         -m ${params.min_indel_threshold} \\
-        -q 20 \\
+        -q ${params.min_variant_qual_freebayes} \\
         -c ${meta.id}.processed.vcf \\
         -v ${meta.id}.variants.vcf \\
         -t ${meta.id}.consensus.tsv \\

@@ -113,28 +113,31 @@ An example file can be [found here](../assets/metadata.tsv)
 
 A table containing all of the parameter descriptions. You can also do `nextflow run phac-nml/measeq --help` to get them on the command line
 
-| Parameter                   | Description                                                                         | Required      | Type    | Default          | Notes                                             |
-| --------------------------- | ----------------------------------------------------------------------------------- | ------------- | ------- | ---------------- | ------------------------------------------------- |
-| --input                     | Path to comma-separated file containing sample and read information                 | True          | Path    | null             |                                                   |
-| --outdir                    | Name of output directory to store results                                           | True          | String  | null             |                                                   |
-| --reference                 | Path to reference fasta file to map to                                              | True          | Path    | null             |                                                   |
-| --platform                  | Sequencing platform used, either 'illumina or nanopore'                             | True          | Choice  | null             |                                                   |
-| --model                     | Name of clair3 model to use                                                         | Nanopore data | String  | null             | Can use `--local_model` instead                   |
-| --local_model               | Path to local clair3 model to use                                                   | Nanopore data | Path    | null             | Can use `--model` instead if wanted               |
-| --primer_bed                | Path to bed file containing genomic primer locations                                | False         | Path    | null             | Use for amplicon data                             |
-| --min_ambiguity_threshold   | Minimum threshold to call a position as an IUPAC                                    | False         | Float   | 0.30             | Illumina only                                     |
-| --max_ambiguity_threshold   | Maximum threshold to call a position as an IUPAC                                    | False         | Float   | 0.75             | Illumina only                                     |
-| --min_indel_threshold       | Minimum thresholds to keep an indel                                                 | False         | Float   | 0.60             | Illumina only                                     |
-| --remove_duplicates         | Mark and remove optical duplicates with picard markduplicates                       | False         | Boolean | false            | Illumina only                                     |
-| --normalise_ont             | Normalise each amplicon barcode to set depth                                        | False         | Int     | 2000             | Nanopore only                                     |
-| --min_variant_qual_c3       | Minimum variant quality to pass clair3 filters                                      | False         | Int     | 8                | Nanopore only                                     |
-| --metadata                  | Path to metadata TSV file containing at minimum 'sample' column                     | False         | Path    | null             | See [Metadata TSV](#metadata-tsv)                 |
-| --dsid_fasta                | Path to DSID multi-fasta to match output consensus data to                          | False         | Path    | null             | See [DSId Matching in README](../README.md#dsids) |
-| --min_depth                 | Minimum depth to call a base                                                        | False         | Int     | 10               |                                                   |
-| --no_frameshifts            | Fail all indel variants not divisible by 3                                          | False         | Boolean | False            | Somewhat crude filter, only use if really needed  |
-| --neg_control_pct_threshold | Threshold of genome to be called in a negative control to fail it                   | False         | Int     | 10               |                                                   |
-| --neg_ctrl_substrings       | Substrings to match to sample names to identify negative controls. Separated by a , | False         | String  | neg,ntc,blank,en |                                                   |
-| --skip_negative_grading     | Skip grading negative controls and just output a PASS for Run QC                    | False         | Boolean | False            |                                                   |
+| Parameter                    | Description                                                                                  | Required      | Type    | Default          | Notes                                             |
+| ---------------------------- | -------------------------------------------------------------------------------------------- | ------------- | ------- | ---------------- | ------------------------------------------------- |
+| --input                      | Path to comma-separated file containing sample and read information                          | True          | Path    | null             |                                                   |
+| --outdir                     | Name of output directory to store results                                                    | True          | String  | null             |                                                   |
+| --reference                  | Path to reference fasta file to map to                                                       | True          | Path    | null             |                                                   |
+| --platform                   | Sequencing platform used, either 'illumina or nanopore'                                      | True          | Choice  | null             |                                                   |
+| --model                      | Name of clair3 model to use                                                                  | Nanopore data | String  | null             | Can use `--local_model` instead                   |
+| --local_model                | Path to local clair3 model to use                                                            | Nanopore data | Path    | null             | Can use `--model` instead if wanted               |
+| --primer_bed                 | Path to bed file containing genomic primer locations                                         | False         | Path    | null             | Use for amplicon data                             |
+| --remove_duplicates          | Mark and remove optical duplicates with picard markduplicates                                | False         | Boolean | false            | Illumina only                                     |
+| --ivar_trim_min_read_length  | Minimum length of read to retain after trimming                                              | False         | Integer | 30               | Illumina only                                     |
+| --min_ambiguity_threshold    | Minimum threshold to call a position as an IUPAC                                             | False         | Float   | 0.30             | Illumina only                                     |
+| --max_ambiguity_threshold    | Maximum threshold to call a position as an IUPAC                                             | False         | Float   | 0.75             | Illumina only                                     |
+| --min_indel_threshold        | Minimum thresholds to keep an indel                                                          | False         | Float   | 0.60             | Illumina only                                     |
+| --min_alt_fraction_freeabyes | Require at least this fraction of observations supporting an alt allele to evaluate position | False         | Float   | 0.05             | Illumina only                                     |
+| --min_variant_qual_freebayes | Minimum freebayes quality (probability) to filter variants                                   | False         | Integer | 20               | Illumina only                                     |
+| --normalise_ont              | Normalise each amplicon barcode to set depth                                                 | False         | Int     | 2000             | Nanopore only                                     |
+| --min_variant_qual_c3        | Minimum variant quality to pass clair3 filters                                               | False         | Int     | 8                | Nanopore only                                     |
+| --metadata                   | Path to metadata TSV file containing at minimum 'sample' column                              | False         | Path    | null             | See [Metadata TSV](#metadata-tsv)                 |
+| --dsid_fasta                 | Path to DSID multi-fasta to match output consensus data to                                   | False         | Path    | null             | See [DSId Matching in README](../README.md#dsids) |
+| --min_depth                  | Minimum depth to call a base                                                                 | False         | Int     | 10               |                                                   |
+| --no_frameshifts             | Fail all indel variants not divisible by 3                                                   | False         | Boolean | False            | Somewhat crude filter, only use if really needed  |
+| --neg_control_pct_threshold  | Threshold of genome to be called in a negative control to fail it                            | False         | Int     | 10               |                                                   |
+| --neg_ctrl_substrings        | Substrings to match to sample names to identify negative controls. Separated by a ,          | False         | String  | neg,ntc,blank,en |                                                   |
+| --skip_negative_grading      | Skip grading negative controls and just output a PASS for Run QC                             | False         | Boolean | False            |                                                   |
 
 ### Other Settings and Parameter Files
 
