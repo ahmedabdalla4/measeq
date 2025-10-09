@@ -3,11 +3,21 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.2] - 2025-09-xx
+
+Adding in more focus on the N450 region per request
+
+### `Adjusted`
+
+
+
 ## [v0.4.1] - 2025-09-09
+
+Small addition of Picard MarkDuplicates workflow along with some new tests
 
 ### `Added`
 
-- nf-core Picard mark duplicates workflow as an optional parameter/workflow to use for illumina data [PR #15](https://github.com/phac-nml/measeq/pull/12)
+- nf-core Picard MarkDuplicates workflow as an optional parameter/workflow to use for illumina data [PR #15](https://github.com/phac-nml/measeq/pull/15)
   - Along with this, added the bam stats samtools workflow to run even when the picard workflow isn't to keep outputs the same
 
 ## [v0.4.0] - 2025-09-03
