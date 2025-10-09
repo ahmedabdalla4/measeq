@@ -5,17 +5,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v0.4.2] - 2025-10-xx
 
-Adding in more parameters to allow users more options in adjusting data analysis including:
+Adding in more parameters to allow users more options in adjusting illumina data analyses
 
 ### `Added`
 
-- New parameters
+- New parameters to control illumina variant calling [PR #18](https://github.com/phac-nml/measeq/pull/18)
   - `--ivar_trim_min_read_length`
   - `--min_alt_fraction_freeabyes`
   - `--min_variant_qual_freebayes`
-- Minimum and Maximum thresholds for parameters in the `nextflow_schema`
+- Minimum and Maximum thresholds for parameters in the `nextflow_schema` [PR #18](https://github.com/phac-nml/measeq/pull/18)
 
-### `Adjusted`
+### `Fixes`
+
+- Fixed the final report provenance typo [PR #18](https://github.com/phac-nml/measeq/pull/18)
 
 ## [v0.4.1] - 2025-09-09
 
