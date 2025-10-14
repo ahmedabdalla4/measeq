@@ -3,11 +3,29 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.4.1] - 2025-09-09
+## [v0.4.2] - 2025-10-xx
+
+Adding in more parameters to allow users more options in adjusting illumina data analyses
 
 ### `Added`
 
-- nf-core Picard mark duplicates workflow as an optional parameter/workflow to use for illumina data [PR #15](https://github.com/phac-nml/measeq/pull/12)
+- New parameters to control illumina variant calling [PR #18](https://github.com/phac-nml/measeq/pull/18)
+  - `--ivar_trim_min_read_length`
+  - `--min_alt_fraction_freeabyes`
+  - `--min_variant_qual_freebayes`
+- Minimum and Maximum thresholds for parameters in the `nextflow_schema` [PR #18](https://github.com/phac-nml/measeq/pull/18)
+
+### `Fixes`
+
+- Fixed the final report provenance typo [PR #18](https://github.com/phac-nml/measeq/pull/18)
+
+## [v0.4.1] - 2025-09-09
+
+Small addition of Picard MarkDuplicates workflow along with some new tests
+
+### `Added`
+
+- nf-core Picard MarkDuplicates workflow as an optional parameter/workflow to use for illumina data [PR #15](https://github.com/phac-nml/measeq/pull/15)
   - Along with this, added the bam stats samtools workflow to run even when the picard workflow isn't to keep outputs the same
 
 ## [v0.4.0] - 2025-09-03
