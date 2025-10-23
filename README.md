@@ -9,6 +9,7 @@
   - [Illumina](#illumina)
   - [Nanopore](#nanopore)
     - [Clair3 Models](#clair3-models)
+  - [Genotype-Based Samplesheet Generation](#genotype-based-samplesheet-generation)
   - [Amplicon and Primer Files](#amplicon-and-primer-files)
   - [DSIds](#dsids)
   - [More Run Options](#more-run-options)
@@ -37,7 +38,8 @@
 ### Future Direction
 
 - Pipeline should run with a single execution command and run output data either against the specified single reference or against a specific defined reference per genotype
-- For IRIDA-Next, were hoping to evaluate generic viral pipeline options (or create one) and merge in virus specific post-processing stages
+  - We have a simple python script developed to do this called [`predict_genotype`](https://github.com/PHAC-NMLB-COG/predict_measles_genotype)
+- For IRIDA-Next, we're hoping to evaluate generic viral pipeline options (or create one) and merge in virus specific post-processing stages
   - So measeq post-processing would end up included there
 
 ## Introduction
@@ -145,6 +147,10 @@ The Nanopore pipeline utilizes [Clair3](https://github.com/HKU-BAL/Clair3) to ca
 Some models are built into clair3 and some need to be downloaded. The [pre-trained clair3](https://github.com/HKU-BAL/Clair3?tab=readme-ov-file#pre-trained-models) models are able to be automatically downloaded when running the pipeline using [`artic get_models`](https://github.com/artic-network/fieldbioinformatics/blob/master/artic/get_models.py) and can be specified as a parameter with `--model <MODEL>`.
 
 Additional or local models can also be used, you just have to provide a path to them and use the `--local_model <PATH>` parameter instead
+
+### Genotype-Based Samplesheet Generation
+
+To help create the samplesheets on a per-genotype basis we've created a small python script called [`predict_genotype`](https://github.com/PHAC-NMLB-COG/predict_measles_genotype) that will predict and split up samples based on the genotype. It isn't perfect and may still require some manual adjustments but it is the intermediate solution while we work towards auto-genotype detection and running in the pipeline itself
 
 ### Amplicon and Primer Files
 
