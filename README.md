@@ -9,6 +9,7 @@
   - [Illumina](#illumina)
   - [Nanopore](#nanopore)
     - [Clair3 Models](#clair3-models)
+  - [Genotype-Based Samplesheet Generation](#genotype-based-samplesheet-generation)
   - [Amplicon and Primer Files](#amplicon-and-primer-files)
   - [DSIds](#dsids)
   - [More Run Options](#more-run-options)
@@ -25,13 +26,21 @@
 
 ## Current Updates
 
-### _2025-09-09_
+### _2025-10-21_ Summary
 
 - Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
 - Dependency management fully available with `Docker`, `Singularity`, and `Conda`
-- Can assign DSIds from reference multi-fasta file and give new N450s a `Novel-hash` label
+- Can assign DSIds from reference multi-fasta file and give new (compared to the file) N450s a `Novel-hash` label based on the sequence
   - With `--dsid_fasta <FASTA>`
+  - [Example](./assets/dsid_example.fasta)
   - If no DISd fasta file available, it will assign all N450 as `Novel-hash` with hashes matching if the sequence is the same
+
+### Future Direction
+
+- Pipeline should run with a single execution command and run output data either against the specified single reference or against a specific defined reference per genotype
+  - We have a simple python script developed to do this called [`predict_genotype`](https://github.com/PHAC-NMLB-COG/predict_measles_genotype)
+- For IRIDA-Next, we're hoping to evaluate generic viral pipeline options (or create one) and merge in virus specific post-processing stages
+  - So measeq post-processing would end up included there
 
 ## Introduction
 
@@ -41,7 +50,7 @@
 
 This project aims to implement an open-source, easy to run, MeV Whole Genome Sequence analysis pipeline that works on both Illumina and Nanopore data. The end goal of this project is to deploy a standardized pipeline focused on final reporting metrics and plots for rapid detection and response to MeV outbreaks in Canada and abroad.
 
-The basis of the pipeline come from two other pipelines. The illumina side from nf-cores' [viralrecon pipeline](https://github.com/nf-core/viralrecon) and for nanopore the [artic pipeline](https://github.com/artic-network/fieldbioinformatics). Most additions were added for measles-specific QC or reporting.
+The basis of the pipeline come from three other pipelines. The Illumina side from nf-cores' [Viralrecon pipeline](https://github.com/nf-core/viralrecon) along with Jared Simpson's [SARS-CoV-2 pipeline](https://github.com/jts/ncov2019-artic-nf/tree/master) (specficially Freebayes and VCF parsing) and for Nanopore the [artic pipeline](https://github.com/artic-network/fieldbioinformatics) with some slight modifications to different aspects of their variant calling. Most additions were added for measles-specific QC and reporting based on lab needs at the NML.
 
 ## Installation
 
@@ -138,6 +147,10 @@ The Nanopore pipeline utilizes [Clair3](https://github.com/HKU-BAL/Clair3) to ca
 Some models are built into clair3 and some need to be downloaded. The [pre-trained clair3](https://github.com/HKU-BAL/Clair3?tab=readme-ov-file#pre-trained-models) models are able to be automatically downloaded when running the pipeline using [`artic get_models`](https://github.com/artic-network/fieldbioinformatics/blob/master/artic/get_models.py) and can be specified as a parameter with `--model <MODEL>`.
 
 Additional or local models can also be used, you just have to provide a path to them and use the `--local_model <PATH>` parameter instead
+
+### Genotype-Based Samplesheet Generation
+
+To help create the samplesheets on a per-genotype basis we've created a small python script called [`predict_genotype`](https://github.com/PHAC-NMLB-COG/predict_measles_genotype) that will predict and split up samples based on the genotype. It isn't perfect and may still require some manual adjustments but it is the intermediate solution while we work towards auto-genotype detection and running in the pipeline itself
 
 ### Amplicon and Primer Files
 

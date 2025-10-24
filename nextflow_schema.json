@@ -74,27 +74,55 @@
             "description": "Options specific to Illumina variant calling thresholds",
             "default": "",
             "properties": {
+                "remove_duplicates": {
+                    "type": "boolean",
+                    "description": "Mark and remove optical duplicates with picard markduplicates"
+                },
+                "ivar_trim_min_read_length": {
+                    "type": "integer",
+                    "description": "Minimum length of read to retain after trimming",
+                    "default": 30,
+                    "minimum": 0,
+                    "fa_icon": "far fa-minus-square"
+                },
                 "min_ambiguity_threshold": {
                     "type": "number",
                     "description": "Minimum threshold to call a position as an IUPAC",
                     "default": 0.3,
+                    "minimum": 0,
+                    "maximum": 1,
                     "fa_icon": "far fa-minus-square"
                 },
                 "max_ambiguity_threshold": {
                     "type": "number",
                     "description": "Maximum threshold to call a position as an IUPAC",
                     "default": 0.75,
+                    "minimum": 0,
+                    "maximum": 1,
                     "fa_icon": "far fa-plus-square"
                 },
                 "min_indel_threshold": {
                     "type": "number",
                     "description": "Minimum thresholds to keep an indel",
                     "default": 0.6,
+                    "minimum": 0,
+                    "maximum": 1,
                     "fa_icon": "far fa-minus-square"
                 },
-                "remove_duplicates": {
-                    "type": "boolean",
-                    "description": "Mark and remove optical duplicates with picard markduplicates"
+                "min_alt_fraction_freeabyes": {
+                    "type": "number",
+                    "description": "Require at least this fraction of observations supporting an alt allele to evaluate position",
+                    "default": 0.05,
+                    "minimum": 0,
+                    "maximum": 1,
+                    "fa_icon": "far fa-minus-square"
+                },
+                "min_variant_qual_freebayes": {
+                    "type": "integer",
+                    "description": "Minimum freebayes quality (probability) to filter variants",
+                    "default": 20,
+                    "minimum": 0,
+                    "fa_icon": "far fa-minus-square"
                 }
             }
         },
@@ -118,11 +146,13 @@
                 "normalise_ont": {
                     "type": "integer",
                     "default": 2000,
+                    "minimum": 0,
                     "description": "Normalise each amplicon barcode to set depth"
                 },
                 "min_variant_qual_c3": {
                     "type": "integer",
                     "default": 8,
+                    "minimum": 0,
                     "description": "Minimum variant quality to pass clair3 filters"
                 }
             }
@@ -150,6 +180,7 @@
                 "min_depth": {
                     "type": "integer",
                     "default": 10,
+                    "minimum": 0,
                     "description": "Minimum depth to call a base"
                 },
                 "no_frameshifts": {
@@ -159,6 +190,8 @@
                 "neg_control_pct_threshold": {
                     "type": "integer",
                     "default": 10,
+                    "minimum": 0,
+                    "maximum": 100,
                     "description": "Genome called threshold for negative control to be considered failed"
                 },
                 "neg_ctrl_substrings": {

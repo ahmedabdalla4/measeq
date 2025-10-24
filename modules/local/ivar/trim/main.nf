@@ -25,7 +25,9 @@ process IVAR_TRIM {
     script:
     """
     ivar trim \\
-        -m 30 -q 20 -e \\
+        -q 20 \\
+        -e \\
+        -m ${params.ivar_trim_min_read_length} \\
         -i $bam \\
         -b $bed \\
         -p ${meta.id}.primertrimmed \\
