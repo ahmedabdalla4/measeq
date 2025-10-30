@@ -96,9 +96,9 @@ nextflow_pipeline {
             // Using the first 10 columns only to get to variants count
             lines = path("$launchDir/results/overall.qc.csv").text
             assert lines.contains("sample,genotype,matched_dsid,num_input_reads,num_aligned_reads,num_consensus_n,genome_completeness_percent,mean_sequencing_depth,median_sequencing_depth,total_variants,")
-            assert lines.contains("empty,NA,No Data,2,1,15894,0.0,0.0,0.0,0,")
-            assert lines.contains("sample1,D8,Novel-bcb39a9,40476,39026,224,98.59,349.06,313.0,269,")
-            assert lines.contains("sample2,D8,Novel-bcb39a9,56368,54181,233,98.53,484.7,483.0,273,")
+            assert lines.contains("empty,NA,No Data,2,0,15894,0.0,0.0,0.0,0,")
+            assert lines.contains("sample1,D8,Novel-bcb39a9,40476,38478,224,98.59,344.41,309.0,269,")
+            assert lines.contains("sample2,D8,Novel-bcb39a9,56368,53533,233,98.53,479.22,477.0,273,")
 
             // Intermediate generated reference files
             assert path("$launchDir/results/reference/amplicon.bed").exists()
@@ -125,7 +125,7 @@ nextflow_pipeline {
             //  Reporting files
             assert path("$launchDir/results/reporting/sample_positional_normalized_depth.csv").exists()
             lines = path("$launchDir/results/reporting/sample_positional_normalized_depth.csv").readLines()
-            assert lines.size() == 4
+            assert lines.size() == 3
 
             assert path("$launchDir/results/reporting/sample_positional_normalized_depth_stats.csv").exists()
             lines = path("$launchDir/results/reporting/sample_positional_normalized_depth_stats.csv").readLines()
@@ -155,20 +155,21 @@ nextflow_pipeline {
             assert iridanext_metadata.add_sample1.genotype == "D8"
             assert iridanext_metadata.add_sample1.matched_dsid == "Novel-bcb39a9"
             assert iridanext_metadata.add_sample1.num_input_reads == "40476"
-            assert iridanext_metadata.add_sample1.num_aligned_reads == "39026"
+            assert iridanext_metadata.add_sample1.num_aligned_reads == "38478"
             assert iridanext_metadata.add_sample1.num_consensus_n == "224"
             assert iridanext_metadata.add_sample1.genome_completeness_percent == "98.59"
-            assert iridanext_metadata.add_sample1.mean_sequencing_depth == "349.06"
-            assert iridanext_metadata.add_sample1.median_sequencing_depth == "313.0"
+            assert iridanext_metadata.add_sample1.mean_sequencing_depth == "344.41"
+            assert iridanext_metadata.add_sample1.median_sequencing_depth == "309.0"
             assert iridanext_metadata.add_sample1.total_variants == "269"
             assert iridanext_metadata.add_sample1.num_snps == "269"
             assert iridanext_metadata.add_sample1.num_iupac == "0"
             assert iridanext_metadata.add_sample1.genome_length == "15894"
             assert iridanext_metadata.add_sample1.divisible_by_6 == "True"
             assert iridanext_metadata.add_sample1.N450_completeness == "100.0"
-            assert iridanext_metadata.add_sample1.N450_mean_depth == "313.58"
+            assert iridanext_metadata.add_sample1.N450_mean_depth == "309.74"
             assert iridanext_metadata.add_sample1.N450_status == "PASS"
             assert iridanext_metadata.add_sample1.qc_status == "PASS"
+            assert iridanext_metadata.add_sample1.pipeline_version == "0.4.3"
 
             // Pipeline info and tracking
             assert path("$launchDir/results/pipeline_info").exists()
@@ -208,7 +209,7 @@ nextflow_pipeline {
             // Using the first 10 columns only to get to variants count
             lines = path("$launchDir/results/overall.qc.csv").text
             assert lines.contains("sample,genotype,matched_dsid,num_input_reads,num_aligned_reads,num_consensus_n,genome_completeness_percent,mean_sequencing_depth,median_sequencing_depth,total_variants,")
-            assert lines.contains("sample1,D8,Novel-65d31ec,9357,9353,3,99.98,385.07,239.0,274,")
+            assert lines.contains("sample1,D8,Novel-65d31ec,9357,9353,3,99.98,378.48,239.0,274,")
 
             // Intermediate generated reference files
             assert path("$launchDir/results/reference/genome.bed").exists()
@@ -256,7 +257,7 @@ nextflow_pipeline {
             assert iridanext_metadata.sample1.num_aligned_reads == "9353"
             assert iridanext_metadata.sample1.num_consensus_n == "3"
             assert iridanext_metadata.sample1.genome_completeness_percent == "99.98"
-            assert iridanext_metadata.sample1.mean_sequencing_depth == "385.07"
+            assert iridanext_metadata.sample1.mean_sequencing_depth == "378.48"
             assert iridanext_metadata.sample1.median_sequencing_depth == "239.0"
             assert iridanext_metadata.sample1.total_variants == "274"
             assert iridanext_metadata.sample1.num_snps == "274"
@@ -264,7 +265,7 @@ nextflow_pipeline {
             assert iridanext_metadata.sample1.genome_length == "15894"
             assert iridanext_metadata.sample1.divisible_by_6 == "True"
             assert iridanext_metadata.sample1.N450_completeness == "100.0"
-            assert iridanext_metadata.sample1.N450_mean_depth == "217.72"
+            assert iridanext_metadata.sample1.N450_mean_depth == "217.4"
             assert iridanext_metadata.sample1.N450_status == "PASS"
             assert iridanext_metadata.sample1.qc_status == "PASS"
 
