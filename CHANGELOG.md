@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Adding in alignment filtering options to fix rare instances where supplementary reads causing affecting single nt indels
 
+Adjsting the nanopore pipeline to remove the max read length in filtering along with filter out RefCalls
+
 ### `Added`
 
 - Samtools sort nf-core module to replace samtools index module in illumina pipeline [PR #21](https://github.com/phac-nml/measeq/pull/21)
@@ -17,6 +19,10 @@ Adding in alignment filtering options to fix rare instances where supplementary 
 - `MINIMAP2_ALIGN` process added in `-F 2308` to remove unmapped, not primary alignment, and supplementary alignment [PR #21](https://github.com/phac-nml/measeq/pull/21)
 - Tests adjusted to conform with lower mapped reads with the change in both [PR #21](https://github.com/phac-nml/measeq/pull/21)
   - No variant count changes
+- nanoq removed max read length from `modules.json`
+- `cs_vcf_filter.py` adjusted to match the source more with adding in min frameshift quality (25 instead of 50) and min allele freq [PR #21](https://github.com/phac-nml/measeq/pull/21)
+  - May make them configurable options later
+  - Added a REFCALL filter so that refcalls weren't fails and were'nt passes
 
 ## [v0.4.2] - 2025-10-23
 

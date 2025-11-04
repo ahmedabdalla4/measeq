@@ -2,7 +2,8 @@
 '''
 Filter VCF Variants originally from https://github.com/artic-network/fieldbioinformatics/blob/master/artic/vcf_filter.py
 
-Added in as a custom module as the original does not allow you to adjust the QUAL threshold with it set at 10
+Added in as a custom module to adjust the QUAL threshold with it set at 10
+    Its still defaulted to 10 but can be adjusted
 '''
 
 from cyvcf2 import VCF, Writer
@@ -26,6 +27,8 @@ class Clair3Filter:
         self.no_frameshifts = no_frameshifts
         self.min_depth = min_depth
         self.min_variant_quality = min_variant_quality
+        self.min_frameshift_quality = 25
+        self.min_allele_frequency = 0.60
 
     def check_filter(self, v):
         qual = v.QUAL
@@ -33,8 +36,24 @@ class Clair3Filter:
         if qual < self.min_variant_quality:
             return False
 
-        if self.no_frameshifts and not in_frame(v):
+        # Filter out low allele frequency variants
+        try:
+            allele_freq = v.format("AF")[0][0]
+        except Exception:
+            print(
+                f"ERROR: Could not find AF for variant at {v.CHROM}:{v.POS}, cannot filter on allele frequency"
+            )
+            raise SystemExit(1)
+
+        if allele_freq < self.min_allele_frequency:
             return False
+
+        if not in_frame(v):
+            if self.no_frameshifts:
+                return False
+            # require a higher quality for frameshifting indels, they're far more likely to be errors
+            if qual < self.min_frameshift_quality:
+                return False
 
         try:
             # We don't really care about the depth here, just skip it if it isn't there
@@ -72,6 +91,11 @@ def go(args):
 
         except KeyError:
             pass
+
+        # Completely skip RefCalls
+        if v.ALT == []:
+            print(f"skipping refcall at {v.POS}")
+            continue
 
         # now apply the filter to send variants to PASS or FAIL file
         if filter.check_filter(v):
