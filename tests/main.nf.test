@@ -117,7 +117,7 @@ nextflow_pipeline {
             assert path("$launchDir/results/consensus/MH356245.1.N450.fasta").md5 == "79e89ca9bfb7213c3767b2011f9ffee8"
             lines = path("$launchDir/results/consensus/MH356245.1.N450.fasta").readLines()
             assert lines.contains(">MH356245.1-N450 ")
-            assert lines.size() == 1
+            assert lines.size() == 2
 
             assert path("$launchDir/results/consensus/empty.consensus.fasta").md5 == "c14c11443f08b9976164ed80339150ca"
             lines = path("$launchDir/results/consensus/empty.consensus.fasta").readLines()
@@ -241,7 +241,7 @@ nextflow_pipeline {
             assert path("$launchDir/results/consensus/MH356245.1.N450.fasta").md5 == "79e89ca9bfb7213c3767b2011f9ffee8"
             lines = path("$launchDir/results/consensus/MH356245.1.N450.fasta").readLines()
             assert lines.contains(">MH356245.1-N450 ")
-            assert lines.size() == 1
+            assert lines.size() == 2
 
             assert path("$launchDir/results/consensus/sample1.consensus.fasta").md5 == "38e34a10a458f25afc1a0dcbc9673967"
             lines = path("$launchDir/results/consensus/sample1.consensus.fasta").readLines()
@@ -252,7 +252,7 @@ nextflow_pipeline {
             assert path("$launchDir/results/consensus/sample1.N450.fasta").md5 == "034fe45b9902229f414548b052dda631"
             lines = path("$launchDir/results/consensus/sample1.N450.fasta").readLines()
             assert lines.contains(">sample1-N450 MH356245.1")
-            assert lines.size() == 1
+            assert lines.size() == 2
 
             //  Reporting files
             assert path("$launchDir/results/reporting/sample_positional_normalized_depth.csv").exists()

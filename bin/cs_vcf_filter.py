@@ -2,8 +2,8 @@
 '''
 Filter VCF Variants originally from https://github.com/artic-network/fieldbioinformatics/blob/master/artic/vcf_filter.py
 
-Added in as a custom module to adjust the QUAL threshold with it set at 10
-    Its still defaulted to 10 but can be adjusted
+Added in as a custom module to adjust the QUAL threshold with it set at 8 by default
+Also added in a filter for refcall bases
 '''
 
 from cyvcf2 import VCF, Writer
