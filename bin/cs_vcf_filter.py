@@ -27,7 +27,7 @@ class Clair3Filter:
         self.no_frameshifts = no_frameshifts
         self.min_depth = min_depth
         self.min_variant_quality = min_variant_quality
-        self.min_frameshift_quality = 25
+        self.min_frameshift_quality = 30
         self.min_allele_frequency = 0.60
 
     def check_filter(self, v):

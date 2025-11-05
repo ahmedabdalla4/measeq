@@ -27,7 +27,7 @@ Overall, the update should fix some rare artifacts to improve the accuracy of th
   - A couple more Ns overall at the start and end of genome for both
   - Slightly lower depth
 - `nanoq` removed the max read length from `modules.json`
-- `cs_vcf_filter.py` adjusted to match the source more with adding in min frameshift quality (25 instead of 50) and min allele freq [PR #21](https://github.com/phac-nml/measeq/pull/21)
+- `cs_vcf_filter.py` adjusted to match the source more with adding in min frameshift quality (30 instead of 50) and min allele freq [PR #21](https://github.com/phac-nml/measeq/pull/21)
   - Added a REFCALL filter so that refcalls were just removed as well
 
 ## [v0.4.2] - 2025-10-23
