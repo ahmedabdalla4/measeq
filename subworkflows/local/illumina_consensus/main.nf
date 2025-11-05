@@ -14,7 +14,7 @@ include { IVAR_TRIM                 } from '../../../modules/local/ivar/trim/mai
 // Variant Calling and Consensus Generation
 include { BWAMEM2_INDEX             } from '../../../modules/nf-core/bwamem2/index/main'
 include { BWAMEM2_MEM               } from '../../../modules/nf-core/bwamem2/mem/main'
-include { SAMTOOLS_INDEX            } from '../../../modules/nf-core/samtools/index/main'
+include { SAMTOOLS_SORT             } from '../../../modules/nf-core/samtools/sort/main'
 include { BAM_MARKDUPLICATES_PICARD } from '../../../subworkflows/nf-core/bam_markduplicates_picard/main'
 include { BAM_STATS_SAMTOOLS        } from '../../../subworkflows/nf-core/bam_stats_samtools/main'
 include { FREEBAYES                 } from '../../../modules/local/freebayes/main'
@@ -63,23 +63,26 @@ workflow ILLUMINA_CONSENSUS {
 
     //
     // MODULE: Run BWAMEM to map to reference
+    //  Using modules.config too filter reads with view
     //
     BWAMEM2_MEM(
         FASTP.out.reads,
         BWAMEM2_INDEX.out.index,
         ch_reference,
-        'sort'
+        ''
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions)
 
     //
-    // MODULE: Index output bam file from BWA
+    // MODULE: Sort and index output bam file from BWA
     //
-    SAMTOOLS_INDEX(
-        BWAMEM2_MEM.out.bam
+    SAMTOOLS_SORT(
+        BWAMEM2_MEM.out.bam,
+        ch_reference,
+        'bai'
     )
-    ch_bam_bai = BWAMEM2_MEM.out.bam.join(SAMTOOLS_INDEX.out.bai, by: [0])
-    ch_versions = ch_versions.mix(SAMTOOLS_INDEX.out.versions)
+    ch_bam_bai = SAMTOOLS_SORT.out.bam.join(SAMTOOLS_SORT.out.bai, by: [0])
+    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
 
     //
     // PROCESS: if we have amplicon data, want to make sure that the primers are not affecting

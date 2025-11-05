@@ -3,6 +3,32 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.4.3] - 2025-xx-xx
+
+Adding in alignment filtering options to fix rare instances where supplementary reads causing affecting single nt indels
+
+Adjusting the nanopore pipeline to remove the max read length in filtering along with filter out RefCalls to also help fix low quality variants being in the final outputs
+
+### `Added`
+
+- Samtools sort nf-core module to replace samtools index module in illumina pipeline [PR #21](https://github.com/phac-nml/measeq/pull/21)
+  - As `sort` was removed from the process `BWAMEM2_MEM` itself to use view and filter specific alignments alignments
+  - Output remains the same as `<sample>.sorted.bam` with the alignment filtering having been done
+
+### `Adjusted`
+
+- `BWAMEM2_MEM` process to run samtools view with `-f 3 -F 2048` to just keep mapped and properly paired alignments along with removing supplementary [PR #21](https://github.com/phac-nml/measeq/pull/21)
+- `MINIMAP2_ALIGN` process added in `-F 2308` to remove unmapped, not primary alignment, and supplementary alignment [PR #21](https://github.com/phac-nml/measeq/pull/21)
+- Tests adjusted to conform with the overall lower mapped reads with the change in both [PR #21](https://github.com/phac-nml/measeq/pull/21)
+  - One variant change in nanopore data test
+    - Lower frequency variant at 0.47 AF
+  - A couple more Ns overall at the start and end of genome
+  - Slightly lower depth
+- `nanoq` removed max read length from `modules.json`
+- `cs_vcf_filter.py` adjusted to match the source more with adding in min frameshift quality (25 instead of 50) and min allele freq [PR #21](https://github.com/phac-nml/measeq/pull/21)
+  - May make them configurable options later
+  - Added a REFCALL filter so that refcalls were just removed
+
 ## [v0.4.2] - 2025-10-23
 
 Exposing more parameters to allow users more options in adjusting illumina data analyses with parameters
@@ -152,6 +178,8 @@ Small addition of Picard MarkDuplicates workflow along with some new tests
 
 - MeaSeq pipeline created and initial code added
 
+[v0.4.3]: https://github.com/phac-nml/measeq/releases/tag/0.4.3
+[v0.4.2]: https://github.com/phac-nml/measeq/releases/tag/0.4.2
 [v0.4.1]: https://github.com/phac-nml/measeq/releases/tag/0.4.1
 [v0.4.0]: https://github.com/phac-nml/measeq/releases/tag/0.4.0
 [v0.3.2]: https://github.com/phac-nml/measeq/releases/tag/0.3.2

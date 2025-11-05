@@ -60,8 +60,9 @@ nextflow_workflow {
             assert path("${launchDir}/results/vcf/processed_vcf/SRR7517490.consensus.tsv").exists()
             assert path("${launchDir}/results/vcf/processed_vcf/SRR7517490.processed.norm.vcf.gz").exists()
 
-            // Consensus md5 --> If it matches, all variants were the same so intermediate files SHOULD be ok/the same (but not definitely)
-            assert path("${launchDir}/results/consensus/SRR7517490.consensus.fasta").md5 == "e2de931b1325ec3f78bb046790ba71c8"
+            // Consensus md5 --> If it matches, all variants were the same so intermediate files SHOULD be ok/the same
+            //  Adjustment for 0.4.3 added a few Ns to it when removing the supplementary reads
+            assert path("${launchDir}/results/consensus/SRR7517490.consensus.fasta").md5 == "eefa42ab991ae2ca9b43d48c0cc6c649"
         }
     }
 }
