@@ -1,5 +1,5 @@
 //
-// Two separate c3 processes for now, probably will combine later into 1
+// Two separate Clair3 processes for now, probably will combine later into 1
 //
 process CLAIR3_POOL {
     label 'process_medium'
@@ -8,8 +8,8 @@ process CLAIR3_POOL {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/clair3:1.1.1--py310h779eee5_0' :
-        'biocontainers/clair3:1.1.1--py310h779eee5_0' }"
+        'https://depot.galaxyproject.org/singularity/clair3:1.2.0--py310h779eee5_0' :
+        'biocontainers/clair3:1.2.0--py310h779eee5_0' }"
 
     input:
     tuple val(meta), path(bam), path(bai), val(pool), path(pool_bed)
@@ -23,7 +23,7 @@ process CLAIR3_POOL {
 
     script:
     """
-    run_clair3.sh \
+    run_clair3.sh \\
         --bam_fn=$bam \\
         --bed_fn=$pool_bed \\
         --ref_fn=$reference \\
@@ -31,11 +31,10 @@ process CLAIR3_POOL {
         --platform='ont' \\
         --model_path="$model" \\
         --output="${meta.id}-out" \\
-        --min_coverage=5 \\
         --haploid_precise \\
         --enable_long_indel \\
         --include_all_ctgs \\
-        --chunk_size=20000 \\
+        --chunk_size=10000 \\
         --no_phasing_for_fa \\
         --enable_variant_calling_at_sequence_head_and_tail
 
@@ -68,8 +67,8 @@ process CLAIR3_NO_POOL {
 
     conda "${moduleDir}/environment.yml"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
-        'https://depot.galaxyproject.org/singularity/clair3:1.1.1--py310h779eee5_0' :
-        'biocontainers/clair3:1.1.1--py310h779eee5_0' }"
+        'https://depot.galaxyproject.org/singularity/clair3:1.2.0--py310h779eee5_0' :
+        'biocontainers/clair3:1.2.0--py310h779eee5_0' }"
 
     input:
     tuple val(meta), path(bam), path(bai)
@@ -83,18 +82,17 @@ process CLAIR3_NO_POOL {
 
     script:
     """
-    run_clair3.sh \
+    run_clair3.sh \\
         --bam_fn=$bam \\
         --ref_fn=$reference \\
         --threads=${task.cpus} \\
         --platform='ont' \\
         --model_path="$model" \\
         --output="${meta.id}-out" \\
-        --min_coverage=5 \\
         --haploid_precise \\
         --enable_long_indel \\
         --include_all_ctgs \\
-        --chunk_size=20000 \\
+        --chunk_size=10000 \\
         --no_phasing_for_fa \\
         --enable_variant_calling_at_sequence_head_and_tail
 
