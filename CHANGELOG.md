@@ -3,11 +3,11 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.4.3] - 2025-11-06
+## [v0.4.3] - 2025-11-07
 
 Adjusting alignment filtering for both nanopore and illumina data to remove supplementary reads and secondary reads. The supplementary reads were rarely adding in artifacts to the final consensus sequence including snps and indels that only they contained. This lowers read counts slightly
 
-Also added the updates to the clair3 vcf filter found in Artic to add in the SNP allele frequency cutoff along with the high frameshift indel cutoff. There was also the addition of a RefCall filter to prevent those from being reported in the final report table (Note that they don't affect the consensus result at all, just the report visualization)
+Also added the updates to the clair3 command including bumping the version, and the vcf filter found in Artic to add in the SNP allele frequency cutoff along with the high frameshift indel cutoff. There was also the addition of a RefCall filter to prevent those from being reported in the final report table (Note that they don't affect the consensus result at all, just the report visualization)
 
 Overall, the update should fix some rare artifacts to improve the accuracy of the final results
 
@@ -21,6 +21,7 @@ Overall, the update should fix some rare artifacts to improve the accuracy of th
 
 - `BWAMEM2_MEM` process to run samtools view with `-f 3 -F 2048` to just keep mapped and properly paired alignments along with removing supplementary [PR #21](https://github.com/phac-nml/measeq/pull/21)
 - `MINIMAP2_ALIGN` process added in `-F 2308` to remove unmapped, not primary alignment, and supplementary alignment [PR #21](https://github.com/phac-nml/measeq/pull/21)
+- `Clair3` bumped to version 1.2.0 along with adjusting the command arguments based on internal sample testing
 - Tests adjusted to conform with the overall lower mapped reads with the change in both variant calling subworkflows [PR #21](https://github.com/phac-nml/measeq/pull/21)
   - There was a single variant change in nanopore data test
     - Lower frequency variant at 0.47 AF
