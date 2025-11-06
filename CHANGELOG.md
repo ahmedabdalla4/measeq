@@ -22,7 +22,7 @@ Overall, the update should fix some rare artifacts to improve the accuracy of th
 - `BWAMEM2_MEM` process to run samtools view with `-f 3 -F 2048` to just keep mapped and properly paired alignments along with removing supplementary [PR #21](https://github.com/phac-nml/measeq/pull/21)
 - `MINIMAP2_ALIGN` process added in `-F 2308` to remove unmapped, not primary alignment, and supplementary alignment [PR #21](https://github.com/phac-nml/measeq/pull/21)
 - `Clair3` bumped to version 1.2.0 along with adjusting the command arguments based on internal sample testing
-- Tests adjusted to conform with the overall lower mapped reads with the change in both variant calling subworkflows [PR #21](https://github.com/phac-nml/measeq/pull/21)
+- Tests adjusted to conform with the overall lower mapped reads with the change in both variant calling subworkflows [PR #23](https://github.com/phac-nml/measeq/pull/23)
   - There was a single variant change in nanopore data test
     - Lower frequency variant at 0.47 AF
   - A couple more Ns overall at the start and end of genome for both
