@@ -2,8 +2,9 @@
 '''
 Filter VCF Variants originally from https://github.com/artic-network/fieldbioinformatics/blob/master/artic/vcf_filter.py
 
-Added in as a custom module to adjust the QUAL threshold with it set at 8 by default
-Also added in a filter for refcall bases
+Notable Changes:
+  - Added a custom parameter to adjust the QUAL threshold with it set at 8 by default.
+  - Added a filter for RefCall bases.
 '''
 
 from cyvcf2 import VCF, Writer
@@ -94,7 +95,7 @@ def go(args):
 
         # Completely skip RefCalls
         if v.ALT == []:
-            print(f"skipping refcall at {v.POS}")
+            print(f"skipping RefCall at {v.POS}")
             continue
 
         # now apply the filter to send variants to PASS or FAIL file

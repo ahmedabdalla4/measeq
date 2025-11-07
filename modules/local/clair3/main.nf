@@ -1,5 +1,7 @@
 //
 // Two separate Clair3 processes for now, probably will combine later into 1
+//  Separated as the one takes in the Pool Bed file while the other doesn't
+//  To combine later, just have to add a check for the input probably
 //
 process CLAIR3_POOL {
     label 'process_medium'
