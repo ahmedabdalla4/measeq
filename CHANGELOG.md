@@ -3,13 +3,41 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.4.2] - 2025-10-23
+## [v0.4.3] - 2025-11-07
 
-Exposing more parameters to allow users more options in adjusting illumina data analyses with parameters
+Adjusting alignment filtering for both nanopore and Illumina data to remove supplementary reads and secondary reads. The supplementary reads were rarely adding in artifacts to the final consensus sequence including SNPs and INDELs that only they contained. This lowers read counts slightly but provides more accurate consensus sequences based on testing.
+
+Also added in updates to the Clair3 process and Nanopore workflow including bumping the Clair3 tool version and adjusting the VCF filter found in the custom [Artic VCF Filter](https://github.com/artic-network/fieldbioinformatics/blob/master/artic/vcf_filter.py) to add in their SNP allele frequency and INDEL frameshift cutoff along with an addition of a RefCall filter. Note that the RefCall filter doesn't affect the consensus result at all, just the report mutation table.
+
+Overall, the update should fix some rare artifacts to improve the accuracy of the final results
 
 ### `Added`
 
-- New parameters to control illumina variant calling [PR #18](https://github.com/phac-nml/measeq/pull/18)
+- `SAMTOOLS_SORT` nf-core module to replace the `SAMTOOLS_INDEX` module in Illumina pipeline [PR #21](https://github.com/phac-nml/measeq/pull/21)
+  - As `sort` was removed from the process `BWAMEM2_MEM` itself to use Samtools view and filter specific alignments
+  - Output remains the same as `<sample>.sorted.bam` with the alignment filtering having been done
+
+### `Adjusted`
+
+- `BWAMEM2_MEM` process adjusted to run Samtools view with `-f 3 -F 2048` to just keep mapped and properly paired alignments along with removing supplementary [PR #21](https://github.com/phac-nml/measeq/pull/21)
+- `MINIMAP2_ALIGN` process added in the Samtools view flag `-F 2308` to remove unmapped, not primary alignment, and supplementary alignments [PR #21](https://github.com/phac-nml/measeq/pull/21)
+- `Clair3` bumped to version 1.2.0 along with adjusting the command arguments based on internal sample testing
+- Tests adjusted to conform with the overall lower mapped reads with the change in both variant calling subworkflows [PR #23](https://github.com/phac-nml/measeq/pull/23)
+  - There was a single variant change in nanopore data test
+    - Lower frequency variant at 0.47 AF
+  - A couple more Ns overall at the start and end of genome for both
+  - Slightly lower depth
+- `nanoq` removed the max read length from `modules.json`
+- `cs_vcf_filter.py` adjusted to match the source more with adding in min frameshift quality (30 instead of 50) and min allele freq [PR #21](https://github.com/phac-nml/measeq/pull/21)
+  - Added a RefCall filter so that RefCall were just removed as well
+
+## [v0.4.2] - 2025-10-23
+
+Exposing more parameters to allow users more options in adjusting Illumina data analyses with parameters
+
+### `Added`
+
+- New parameters to control Illumina variant calling [PR #18](https://github.com/phac-nml/measeq/pull/18)
   - `--ivar_trim_min_read_length`
   - `--min_alt_fraction_freeabyes`
   - `--min_variant_qual_freebayes`
@@ -26,7 +54,7 @@ Small addition of Picard MarkDuplicates workflow along with some new tests
 
 ### `Added`
 
-- nf-core Picard MarkDuplicates workflow as an optional parameter/workflow to use for illumina data [PR #15](https://github.com/phac-nml/measeq/pull/15)
+- nf-core Picard MarkDuplicates workflow as an optional parameter/workflow to use for Illumina data [PR #15](https://github.com/phac-nml/measeq/pull/15)
   - Along with this, added the bam stats samtools workflow to run even when the picard workflow isn't to keep outputs the same
 
 ## [v0.4.0] - 2025-09-03
@@ -96,7 +124,7 @@ Small addition of Picard MarkDuplicates workflow along with some new tests
 
 - Output directories for Nanopore process in the `modules.config` file [PR #6](https://github.com/phac-nml/measeq/pull/6)
 - Updated `artic` version from `1.6.2` --> `1.7.4` for nanopore pipeline [PR #6](https://github.com/phac-nml/measeq/pull/6)
-- Ambiguous position handling for illumina data [PR #5](https://github.com/phac-nml/measeq/pull/5)
+- Ambiguous position handling for Illumina data [PR #5](https://github.com/phac-nml/measeq/pull/5)
   - Specifically for rare postions where there was a low-supported INDEL along with a SNP
 - Negative control default string to add in 'en' [PR #5](https://github.com/phac-nml/measeq/pull/5)
 - Samtools depth `meta1` to `meta` as it was breaking the IRIDA-Next plugin [PR #6](https://github.com/phac-nml/measeq/pull/6)
@@ -152,6 +180,8 @@ Small addition of Picard MarkDuplicates workflow along with some new tests
 
 - MeaSeq pipeline created and initial code added
 
+[v0.4.3]: https://github.com/phac-nml/measeq/releases/tag/0.4.3
+[v0.4.2]: https://github.com/phac-nml/measeq/releases/tag/0.4.2
 [v0.4.1]: https://github.com/phac-nml/measeq/releases/tag/0.4.1
 [v0.4.0]: https://github.com/phac-nml/measeq/releases/tag/0.4.0
 [v0.3.2]: https://github.com/phac-nml/measeq/releases/tag/0.3.2
