@@ -9,7 +9,7 @@ process BEDTOOLS_COVERAGE {
 
     input:
     tuple val(meta), path(input_A), path(input_B)
-    path genome_file
+    val genome_file
 
     output:
     tuple val(meta), path("*.bed"), emit: bed

@@ -1,0 +1,85 @@
+nextflow_workflow {
+
+    name "Test of Nanopore Consensus Subworkflow with Optional Params"
+    script "subworkflows/local/nanopore_consensus/main.nf"
+    workflow "NANOPORE_CONSENSUS"
+    tag "subworkflows"
+    tag "consensus"
+    tag "nanopore"
+
+    test("Basic Nanopore Consensus Workflow") {
+        tag "success"
+        when {
+            workflow {
+                """
+                input[0] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/assets/reference/D8/MH356245.1.reference.fasta")
+                        ]
+                    )
+                input[1] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/test_data/MH356245.1.reference.fasta.fai")
+                        ]
+                    )
+                input[2] = Channel.of(
+                        [
+                            [id: "SRR31023629.downsampled", single_end: true, ref_id: "MH356245.1"],
+                            file("$baseDir/test_data/nanopore_fastqs/SRR31023629.downsampled.fastq.gz")
+                        ]
+                    )
+                input[3] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/test_data/primer.bed")
+                        ]
+                    )
+                input[4] = Channel.of(
+                        [
+                            [id: "MH356245.1", pool: "1"],
+                            file("$baseDir/test_data/amplicon_pools/1.bed")
+                        ],
+                        [
+                            [id: "MH356245.1", pool: "2"],
+                            file("$baseDir/test_data/amplicon_pools/2.bed")
+                        ]
+                    )
+                """
+            }
+            params {
+                outdir = "results"
+                platform = "nanopore"
+                primer_bed = "$baseDir/test_data/primer.bed"
+                model = "r1041_e82_400bps_sup_v410"
+                min_depth = 30
+                ont_min_read_length = 400
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success }
+            )
+
+            // Files exist
+            // Nanoq
+            assert path("${launchDir}/results/nanoq/SRR31023629.downsampled_filtered.fastq").exists()
+            assert path("${launchDir}/results/nanoq/SRR31023629.downsampled_filtered.stats").exists()
+            // BAM
+            assert path("${launchDir}/results/bam/minimap2/SRR31023629.downsampled.sorted.bam").exists()
+            assert path("${launchDir}/results/bam/minimap2/SRR31023629.downsampled.sorted.bam.bai").exists()
+            // VCF
+            assert path("${launchDir}/results/vcf/artic/SRR31023629.downsampled.fail.vcf").exists()
+            assert path("${launchDir}/results/vcf/artic/SRR31023629.downsampled.pass.vcf.gz").exists()
+            assert path("${launchDir}/results/vcf/artic/SRR31023629.downsampled.pass.vcf.gz.tbi").exists()
+            assert path("${launchDir}/results/vcf/clair3/SRR31023629.downsampled.1.vcf").exists()
+            assert path("${launchDir}/results/vcf/clair3/SRR31023629.downsampled.2.vcf").exists()
+            assert path("${launchDir}/results/vcf/final/SRR31023629.downsampled.pass.norm.vcf.gz").exists()
+            assert path("${launchDir}/results/vcf/final/SRR31023629.downsampled.consensus.tsv").exists()
+            assert path("${launchDir}/results/vcf/final/SRR31023629.downsampled.pass.norm.vcf.gz.tbi").exists()
+            // Consensus
+            assert path("${launchDir}/results/consensus/SRR31023629.downsampled.consensus.fasta").md5 == "0dd5b4f47be1aa2657467cb1906e1b10"
+        }
+    }
+}

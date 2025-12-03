@@ -1,7 +1,7 @@
 # MeaSeq: Measles Sequence Analysis Automation
 
 - [Current Updates](#current-updates)
-  - [2025-07-18](#2025-07-18)
+  - [2025-12-01](#2025-12-01)
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Resource Requirements](#resources-requirements)
@@ -9,7 +9,7 @@
   - [Illumina](#illumina)
   - [Nanopore](#nanopore)
     - [Clair3 Models](#clair3-models)
-  - [Genotype-Based Samplesheet Generation](#genotype-based-samplesheet-generation)
+  - [Reference Assignment](#reference-assignment)
   - [Amplicon and Primer Files](#amplicon-and-primer-files)
   - [DSIds](#dsids)
   - [More Run Options](#more-run-options)
@@ -26,19 +26,20 @@
 
 ## Current Updates
 
-### _2025-10-21_ Summary
+### _2025-12-01_ Summary
 
-- Illumina and Nanopore workflows fully functional with the same (or equivalent) outputs
-- Dependency management fully available with `Docker`, `Singularity`, and `Conda`
-- Can assign DSIds from reference multi-fasta file and give new (compared to the file) N450s a `Novel-hash` label based on the sequence
-  - With `--dsid_fasta <FASTA>`
-  - [Example](./assets/dsid_example.fasta)
-  - If no DISd fasta file available, it will assign all N450 as `Novel-hash` with hashes matching if the sequence is the same
+- Sample references are now set based on the predicted genotype with a default fallback for non currently supported genotypes
+
+  - Currently supported: A, B3, D8
+
+    - Full support to come in `0.5.1`
+
+  - Users can still set their own reference with `--reference`
+  - [References Config](conf/reference.config)
+  - [References and Predictions section](#reference-assignment)
 
 ### Future Direction
 
-- Pipeline should run with a single execution command and run output data either against the specified single reference or against a specific defined reference per genotype
-  - We have a simple python script developed to do this called [`predict_genotype`](https://github.com/PHAC-NMLB-COG/predict_measles_genotype)
 - For IRIDA-Next, we're hoping to evaluate generic viral pipeline options (or create one) and merge in virus specific post-processing stages
   - So measeq post-processing would end up included there
 
@@ -83,7 +84,7 @@ By default, the `bwamem2` step has a minimum resource usage allocation set to `1
 
 This can be adjusted (along with the other labels) by creating and passing a [custom configuration file](https://nf-co.re/docs/usage/getting_started/configuration) with `-c <config>`. More info can be found in the [usage doc](./docs/usage.md)
 
-The pipeline has also been test using as low as `2 cpus` and `8GB memory` with a few throttling steps but functional.
+The pipeline has also been tested using as low as `2 cpus` and `8GB memory` with a few throttling steps but functional.
 
 ## Usage
 
@@ -109,7 +110,6 @@ nextflow run phac-nml/measeq \
     -profile <docker/singularity/.../institute>
     --input <SAMPLESHEET> \
     --outdir <OUTDIR> \
-    --reference <REFERENCE FASTA> \
     --platform illumina \
 ```
 
@@ -134,7 +134,6 @@ You can then run the pipeline using:
 nextflow run phac-nml/measeq \
     --input <SAMPLESHEET> \
     --outdir <OUTDIR> \
-    --reference <REFERENCE FASTA> \
     --platform nanopore \
     --model <CLAIR3_MODEL> \
     -profile <docker/singularity/institute/etc>
@@ -148,13 +147,23 @@ Some models are built into clair3 and some need to be downloaded. The [pre-train
 
 Additional or local models can also be used, you just have to provide a path to them and use the `--local_model <PATH>` parameter instead
 
-### Genotype-Based Samplesheet Generation
+### Reference Assignment
 
-To help create the samplesheets on a per-genotype basis we've created a small python script called [`predict_genotype`](https://github.com/PHAC-NMLB-COG/predict_measles_genotype) that will predict and split up samples based on the genotype. It isn't perfect and may still require some manual adjustments but it is the intermediate solution while we work towards auto-genotype detection and running in the pipeline itself
+With [MeaSeq v0.5.0](https://github.com/phac-nml/measeq/releases/tag/0.5.0), we have simplified the pipeline's running command by not requiring the `--reference` parameter. Within this update, we have moved to a per-sample reference assignment based on predicting the input sample's most likely genotype. In doing so, we have preset 3 reference files based on three measles virus genotypes (B3, D8, A). If a sample is predicted to be one of these genotypes, then the pipeline processes the sample using the corresponding reference FASTA file. If the sample's most likely genotype doesn't correspond to one of these genotypes, then the pipeline defaults to using the D8 reference FASTA file for that sample.
+
+#### Specifying your own reference FASTA file
+
+With the change mentioned above, you are still able to use your own reference FASTA file for your samples. If you would like to use your own reference to map the samples to, you may use the `--reference <FASTA>` parameter to specify the path to your reference FASTA file. Please note that all samples within that run will now use the FASTA file you have specified.
+
+#### Changing the preset reference FASTA and primer bed files
+
+If you would like to preset your own reference FASTA and primer bed files, you may pass a params file or use the command line to specify a specific file for the genotype you would like to change. More detailed information about changing the preset files is found within [the usage file linked here](docs/usage.md#specifying-parameters-to-preset-specific-reference-fasta-and-primer-bed-files).
 
 ### Amplicon and Primer Files
 
-_Both_ Illumina and Nanopore support running amplicon data using a primer scheme file. To run amplicon data all you need is a primer bed file where the primers have been mapped to the location in the reference genome used. The parameter being `--primer_bed <PRIMER_BED>`. An example primer bed file looks as such:
+_Both_ Illumina and Nanopore support running amplicon data using a primer scheme file. To run amplicon data all you need to do is specify the `--amplicon` parameter within your command to use the appropriate preset primer bed file.
+
+If running the pipeline with your own reference using `--reference <FASTA>`, you have to specify your own primer bed file if you would like to run amplicon data. The primer bed file details the location where the primers have been mapped to within the reference genome. To run amplicon data when specifying your own reference, use the `--primer_bed <PRIMER_BED>` parameter. An example primer bed file looks as such:
 
 **primer.bed**
 

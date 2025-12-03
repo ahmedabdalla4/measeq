@@ -12,10 +12,8 @@ process MAKE_SAMPLE_QC_CSV {
 
     input:
     tuple val(meta), path(bam), path(bai), path(consensus), path(consensus_n450), path(depth_bed),
-            path(nextclade_n450), path(nextclade_full), path(vcf), path(tbi), path(read_json)
+            path(nextclade_n450), path(nextclade_full), path(vcf), path(tbi), path(read_json), val(genotype), path(primer_bed)
     path dsid
-    val genotype
-    path primer_bed
 
     output:
     tuple val(meta), path ("${meta.id}.qc.csv"), emit: csv
@@ -50,7 +48,8 @@ process MAKE_SAMPLE_QC_CSV {
         $readJsonArg \\
         $seqPrimerArg \\
         --sample $meta.id \\
-        --irida_id $meta.irida_id
+        --irida_id $meta.irida_id \\
+        --ref_id $meta.ref_id
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

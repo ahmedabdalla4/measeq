@@ -116,6 +116,13 @@ def init_parser() -> argparse.ArgumentParser:
         type=Path,
         help='Input Sequencing primer bed file to test variants against'
     )
+    parser.add_argument(
+        '-r',
+        '--ref_id',
+        required=True,
+        type=str,
+        help='Name of Reference used'
+    )
     return parser
 
 
@@ -677,6 +684,7 @@ def main() -> None:
     final = {
         'sample': [args.sample],
         'genotype': [genotype],
+        'reference': [args.ref_id],
         'matched_dsid': [matched_dsid],
         'num_input_reads': [num_input_reads],
         'num_aligned_reads': [num_aligned_reads],

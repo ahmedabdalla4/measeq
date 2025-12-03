@@ -27,7 +27,9 @@ include { GENERATE_REPORT         } from '../subworkflows/local/generate_report'
 workflow MEASEQ {
 
     take:
-    ch_input_fastqs // channel: samplesheet read in from --input
+    ch_samples      // channel: samplesheet read in from --input // tuple meta[id, single-end, ref_id], fastqs[f1,f2]
+    ch_reference    // channel: reference created from --reference or predicted // tuple meta[ref_id], fasta
+    ch_primer_bed   // channel: primer bed file created from --primer_bed or predicted // tuple meta[ref_id], primer_bed : null
 
     main:
     ch_versions = Channel.empty()
@@ -38,10 +40,11 @@ workflow MEASEQ {
         .set { ch_custom_nextclade_dataset }
     ch_id_fasta = params.dsid_fasta ? file(params.dsid_fasta, type: 'file', checkIfExists: true) : []
 
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Setup
-
     //
+
     // MODULE: Setup nextclade dataset
     //
     NEXTCLADE_DATASETGET(
@@ -54,24 +57,24 @@ workflow MEASEQ {
     // WORKFLOW: Reference Setup
     //
     SETUP_REFERENCE_DATA(
-        params.reference,
-        params.primer_bed,
+        ch_reference,
+        ch_primer_bed,
         NEXTCLADE_DATASETGET.out.dataset
     )
-    ch_reference                = SETUP_REFERENCE_DATA.out.reference
-    ch_reference_fai            = SETUP_REFERENCE_DATA.out.fai
-    ch_primer_bed               = SETUP_REFERENCE_DATA.out.primer_bed
-    ch_amplicon_bed             = SETUP_REFERENCE_DATA.out.amplicon_bed
-    ch_split_amp_pools_bed      = SETUP_REFERENCE_DATA.out.split_amp_pools_bed
-    ch_ref_n450                 = SETUP_REFERENCE_DATA.out.ref_n450
-    ch_genotype                 = SETUP_REFERENCE_DATA.out.genotype
-    ch_versions                 = ch_versions.mix(SETUP_REFERENCE_DATA.out.versions)
+    ch_reference            = SETUP_REFERENCE_DATA.out.reference
+    ch_fai                  = SETUP_REFERENCE_DATA.out.fai
+    ch_refstats             = SETUP_REFERENCE_DATA.out.refstats
+    ch_genome_bed           = SETUP_REFERENCE_DATA.out.genome_bed
+    ch_amplicon_bed         = SETUP_REFERENCE_DATA.out.amplicon_bed
+    ch_split_amp_pools_bed  = SETUP_REFERENCE_DATA.out.split_amp_pools_bed
+    ch_ref_n450             = SETUP_REFERENCE_DATA.out.ref_n450
+    ch_versions             = ch_versions.mix(SETUP_REFERENCE_DATA.out.versions)
 
     //
     // MODULE: Run FastQC
     //
     FASTQC(
-        ch_input_fastqs
+        ch_samples
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
@@ -88,8 +91,8 @@ workflow MEASEQ {
         //
         NANOPORE_CONSENSUS(
             ch_reference,
-            ch_reference_fai,
-            ch_input_fastqs,
+            ch_fai,
+            ch_samples,
             ch_primer_bed,
             ch_split_amp_pools_bed
         )
@@ -106,8 +109,8 @@ workflow MEASEQ {
         //
         ILLUMINA_CONSENSUS(
             ch_reference,
-            ch_reference_fai,
-            ch_input_fastqs,
+            ch_fai,
+            ch_samples,
             ch_primer_bed
         )
         ch_read_json    = ILLUMINA_CONSENSUS.out.fastp_json
@@ -130,10 +133,24 @@ workflow MEASEQ {
     )
     ch_versions = ch_versions.mix(NEXTCLADE_RUN_N450.out.versions.first())
 
-    // Using the N450 nextclade align, create renamed, easy to find N450 output
+    //
+    // MODULE: Adjust N450 sequence headers to make downstream processes easier
+    //
+
+    // Prepare Input
+    // Using the N450 nextclade align, create renamed & easy to find N450 output
+    ch_n450_adjust_input = NEXTCLADE_RUN_N450.out.fasta_aligned
+        .map { meta, n450_fasta -> tuple(meta.ref_id, meta, n450_fasta) }
+        .combine(ch_reference.map { meta_ref, ref_fasta -> tuple(meta_ref.id, meta_ref, ref_fasta) }, by: 0)
+        .multiMap { _ref_id, meta, n450_fasta, meta_ref, ref_fasta ->
+            n450: tuple(meta, n450_fasta)
+            reference: tuple(meta_ref, ref_fasta)
+        }
+
+    // Run Module
     ADJUST_N450_FASTA_HEADER(
-        NEXTCLADE_RUN_N450.out.fasta_aligned,
-        ch_reference,
+        ch_n450_adjust_input.n450,
+        ch_n450_adjust_input.reference,
         '.N450',
         '-N450'
     )
@@ -150,9 +167,12 @@ workflow MEASEQ {
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // QC
+
+    //
+    // MODULE: get the sequencing depth of each sample
     SAMTOOLS_DEPTH(
-        ch_bam_bai.map{ it -> [it[0], it[1]] },
-        [[:], []] // Empty as want to run whole depth
+        ch_bam_bai.map{ meta, bam, bai -> tuple(meta, bam) },
+        [[:], []] // Empty as we want to run whole depth
     )
     ch_versions = ch_versions.mix(SAMTOOLS_DEPTH.out.versions.first())
 
@@ -171,18 +191,46 @@ workflow MEASEQ {
     //
     // MODULE: Summarize all of the sample data into 1 CSV file per sample
     //
+
+    //Prepare Inputs
+    ch_overall_sample = ch_bam_bai
+        .map { meta, bam, bai -> tuple(meta.id, meta, bam, bai)}
+        .join(ch_consensus.map { meta, con_fasta -> tuple(meta.id, con_fasta)}, by: [0])
+        .join(ADJUST_N450_FASTA_HEADER.out.consensus.map { meta, n450_fasta -> tuple(meta.id, n450_fasta)}, by: [0])
+        .join(SAMTOOLS_DEPTH.out.tsv.map { meta, depth_bed -> tuple(meta.id, depth_bed)}, by: [0])
+        .join(NEXTCLADE_RUN_N450.out.csv.map { meta, nextclade_n450 -> tuple(meta.id, nextclade_n450)}, by: [0])
+        .join(NEXTCLADE_RUN_CUSTOM.out.csv.map { meta, nextclade_full -> tuple(meta.id, nextclade_full)}, by: [0])
+        .join(ch_vcf.map { meta, vcf, tbi -> tuple(meta.id, vcf, tbi)}, by: [0])
+        .join(ch_read_json.map { meta, read_json -> tuple(meta.id, read_json)}, by: [0])
+        .map { _meta_id, meta, bam, bai, con_fasta, n450_fasta, depth_bed, nextclade_n450, nextclade_full, vcf, tbi, read_json ->
+            tuple(meta.ref_id, meta, bam, bai, con_fasta, n450_fasta, depth_bed, nextclade_n450, nextclade_full, vcf, tbi, read_json)
+        }
+
+    // Prepare primers file and join with genotype if available or just output genotype
+    if ( params.amplicon || params.primer_bed ) {
+        ch_overall_ref = ch_reference
+            .map{ meta_ref, fasta -> tuple(meta_ref.id, meta_ref.genotype) }
+            .join(ch_primer_bed.map { meta_ref, bed -> tuple(meta_ref.id, bed)}, by: [0])
+            .map { ref_id, ref_genotype, bed ->
+                tuple(ref_id, ref_genotype, bed)
+            }
+            .unique { it[0] }
+    } else {
+        ch_overall_ref = ch_reference
+            .map{ meta_ref, fasta -> tuple(meta_ref.id, meta_ref.genotype, []) }
+    }
+
+    // Combine genotype/primers with their corresponding samples according to ref_id
+    ch_sample_qc_input = ch_overall_sample
+        .combine(ch_overall_ref, by: 0)
+        .map { _ref_id, meta, bam, bai, con_fasta, n450_fasta, depth_bed, nextclade_n450, nextclade_full, vcf, tbi, read_json, genotype, bed ->
+            tuple(meta, bam, bai, con_fasta, n450_fasta, depth_bed, nextclade_n450, nextclade_full, vcf, tbi, read_json, genotype, bed)
+        }
+
+    // Run Module
     MAKE_SAMPLE_QC_CSV(
-        ch_bam_bai
-            .join(ch_consensus, by: [0])
-            .join(ADJUST_N450_FASTA_HEADER.out.consensus, by: [0])
-            .join(SAMTOOLS_DEPTH.out.tsv, by: [0])
-            .join(NEXTCLADE_RUN_N450.out.csv, by: [0])
-            .join(NEXTCLADE_RUN_CUSTOM.out.csv, by: [0])
-            .join(ch_vcf, by: [0])
-            .join(ch_read_json, by: [0]),
-        ch_dsid_results.collect(),
-        ch_genotype,
-        ch_primer_bed.collect().ifEmpty([])
+        ch_sample_qc_input,
+        ch_dsid_results.collect()
     )
     ch_versions = ch_versions.mix(MAKE_SAMPLE_QC_CSV.out.versions.first())
 
@@ -206,7 +254,7 @@ workflow MEASEQ {
     //
     // WORKFLOW: Amplicon statistics if amplicons were being run
     //
-    if( params.primer_bed ) {
+    if( params.amplicon || params.primer_bed ) {
         GENERATE_AMPLICON_STATS(
             ch_bam_bai,
             ch_consensus,
@@ -220,10 +268,9 @@ workflow MEASEQ {
     //
     GENERATE_REPORT(
         ch_reference,
-        ch_reference_fai,
+        ch_fai,
         ch_bam_bai,
         ch_variants_tsv,
-        ch_genotype,
         SAMTOOLS_DEPTH.out.tsv,
         MAKE_FINAL_QC_CSV.out.csv,
         ch_versions

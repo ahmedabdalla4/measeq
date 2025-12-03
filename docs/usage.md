@@ -75,20 +75,20 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 The typical base command for running the illumina pipeline path is as follows:
 
 ```bash
-nextflow run phac-nml/measeq --input ./samplesheet.csv --outdir results  --reference ./REFERENCE.fa --platform illumina -profile docker
+nextflow run phac-nml/measeq --input ./samplesheet.csv --outdir results --platform illumina -profile docker
 ```
 
-This will launch the pipeline with the `docker` configuration profile using `REFERENCE.fa` and for `illumina` input data. See [All Parameters](#all-parameters) for more information about all parameters available.
+This will launch the pipeline with the `docker` configuration profile for `illumina` input data. This uses a custom prediction script to assign a sample's most likely genotype to map the reads to. More information about genotype assignment [is found here](#--reference). See [All Parameters](#all-parameters) for more information about all parameters available.
 
 ### Nanopore Required
 
 The typical base command for running the nanopore pipeline path is as follows:
 
 ```bash
-nextflow run phac-nml/measeq --input ./samplesheet.csv --outdir results  --reference ./REFERENCE.fa --platform nanopore --model 'r941_prom_sup_g5014' -profile docker
+nextflow run phac-nml/measeq --input ./samplesheet.csv --outdir results --platform nanopore --model 'r941_prom_sup_g5014' -profile docker
 ```
 
-This will launch the pipeline with the `docker` configuration profile using `REFERENCE.fa` and for `nanopore` input data. We've also set the model for clair3 to be `r941_prom_sup_g5014`. See [All Parameters](#all-parameters) for more information about all parameters available.
+This will launch the pipeline with the `docker` configuration profile. For `nanopore` input data, we've also set the model for clair3 to be `r941_prom_sup_g5014`. This uses a custom prediction script to assign a sample's most likely genotype to map the reads to. More information about genotype assignment [is found here](#--reference). See [All Parameters](#all-parameters) for more information about all parameters available.
 
 ### Expanded Parameter Options
 
@@ -117,10 +117,11 @@ A table containing all of the parameter descriptions. You can also do `nextflow 
 | ---------------------------- | -------------------------------------------------------------------------------------------- | ------------- | ------- | ---------------- | ------------------------------------------------- |
 | --input                      | Path to comma-separated file containing sample and read information                          | True          | Path    | null             |                                                   |
 | --outdir                     | Name of output directory to store results                                                    | True          | String  | null             |                                                   |
-| --reference                  | Path to reference fasta file to map to                                                       | True          | Path    | null             |                                                   |
 | --platform                   | Sequencing platform used, either 'illumina or nanopore'                                      | True          | Choice  | null             |                                                   |
 | --model                      | Name of clair3 model to use                                                                  | Nanopore data | String  | null             | Can use `--local_model` instead                   |
 | --local_model                | Path to local clair3 model to use                                                            | Nanopore data | Path    | null             | Can use `--model` instead if wanted               |
+| --reference                  | Path to reference fasta file to map to                                                       | False         | Path    | null             |                                                   |
+| --remove_duplicates          | Run amplicon data using the preset primer bed files or with ``--primer_bed` parameter        | False         | Boolean | false            | Use for amplicon data                             |
 | --primer_bed                 | Path to bed file containing genomic primer locations                                         | False         | Path    | null             | Use for amplicon data                             |
 | --remove_duplicates          | Mark and remove optical duplicates with picard markduplicates                                | False         | Boolean | false            | Illumina only                                     |
 | --ivar_trim_min_read_length  | Minimum length of read to retain after trimming                                              | False         | Integer | 30               | Illumina only                                     |
@@ -131,6 +132,7 @@ A table containing all of the parameter descriptions. You can also do `nextflow 
 | --min_variant_qual_freebayes | Minimum freebayes quality (probability) to filter variants                                   | False         | Integer | 20               | Illumina only                                     |
 | --normalise_ont              | Normalise each amplicon barcode to set depth                                                 | False         | Int     | 2000             | Nanopore only                                     |
 | --min_variant_qual_c3        | Minimum variant quality to pass clair3 filters                                               | False         | Int     | 8                | Nanopore only                                     |
+| --ont_min_read_length        | Minimum read length for input ONT reads                                                      | False         | Int     | 200              | Nanopore only                                     |
 | --metadata                   | Path to metadata TSV file containing at minimum 'sample' column                              | False         | Path    | null             | See [Metadata TSV](#metadata-tsv)                 |
 | --dsid_fasta                 | Path to DSID multi-fasta to match output consensus data to                                   | False         | Path    | null             | See [DSId Matching in README](../README.md#dsids) |
 | --min_depth                  | Minimum depth to call a base                                                                 | False         | Int     | 10               |                                                   |
@@ -168,11 +170,54 @@ with:
 ```yaml title="params.yaml"
 input: "./samplesheet.csv"
 outdir: "./results/"
-reference: "./REFERENCE.fa"
 platform: "illumina"
 ```
 
 You can also generate such `YAML`/`JSON` files via [nf-core/launch](https://nf-co.re/launch).
+
+#### Specifying parameters to preset specific reference FASTA and primer bed files
+
+To change the preset files for each genotype, you may use a params file as detailed above or pass the modified paths through the command line. Here is a list of parameters that you may change:
+
+```
+B3_ref
+B3_bed
+D8_ref
+D8_bed
+A_ref
+A_bed
+default_ref
+default_bed
+```
+
+#### Creating a params file for preset references
+
+Create a `reference.yaml` file that includes the following. Note that you don't have to specify all of these, only the ones you would like to change.
+
+```yaml title="reference.yaml"
+B3_ref: "path/to/fasta/file"
+B3_bed: "path/to/bed/file"
+D8_ref: "path/to/fasta/file"
+D8_bed: "path/to/bed/file"
+A_ref: "path/to/fasta/file"
+A_bed: "path/to/bed/file"
+default_ref: "path/to/fasta/file"
+default_bed: "path/to/bed/file"
+```
+
+and run with:
+
+```bash
+nextflow run phac-nml/measeq -profile <PROFILE> --input <SAMPLESHEET.CSV> --platform <ILLUMINA OR NANOPORE> -params-file reference.yaml
+```
+
+#### Passing in paths through the command line
+
+Instead of creating a params file, you may also change one or multiple paths through the command line. For example, if you wanted to change the default reference FASTA and primer bed files, you can use:
+
+```bash
+nextflow run phac-nml/measeq -profile <PROFILE> --input <SAMPLESHEET.CSV> --platform <ILLUMINA OR NANOPORE> --default_ref <PATH/TO/FASTA/FILE> --deafult_bed <PATH/TO/BED/FILE>
+```
 
 ### Updating the pipeline
 
@@ -233,6 +278,12 @@ If `-profile` is not specified, the pipeline will run locally and expect all sof
   - A generic configuration profile to enable [Wave](https://seqera.io/wave/) containers. Use together with one of the above (requires Nextflow ` 24.03.0-edge` or later).
 - `conda`
   - A generic configuration profile to be used with [Conda](https://conda.io/docs/). Please only use Conda as a last resort i.e. when it's not possible to run the pipeline with Docker, Singularity, Podman, Shifter, Charliecloud, or Apptainer.
+
+### `--reference`
+
+By default, the pipeline predicts a sample's genotype using a supplemented measles WHO N450 reference dataset and uses that to set a reference FASTA file to map the sample's reads to. These available preset reference FASTA files correspond to the D8, B3, and A genotypes of the measles virus. If a sample is predicted to be another genotype, then the pipeline defaults to the D8 reference file.
+
+You can override this prediction and use your own reference FASTA file by specifying the path to the file using `--reference`. Please note that all samples within that run will now use the FASTA file you have specified.
 
 ### `-resume`
 
