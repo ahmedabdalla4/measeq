@@ -11,20 +11,20 @@ The default running inputs have been simplified to not require the `--reference`
 
 ### `Added`
 
-- `PREDICT_GENOTYPE` is a python script that uses `minimap2`, `samtools`, and the WHO's N450 measles database to predict the most likely genotype of each sample and automatically selects the appropriate reference for downstream mapping.
+- `PREDICT_GENOTYPE` is a python script that uses `minimap2`, `samtools`, and the WHO's N450 measles database to predict the most likely genotype of each sample and automatically selects the appropriate reference for downstream mapping [PR #24](https://github.com/phac-nml/measeq/pull/24)
 
-- `EXTRACT_GENOTYPE` is a quick script that retries each reference's genotype and adds it the the reference's meta map for later downstream processes.
+- `EXTRACT_GENOTYPE` is a quick script that retries each reference's genotype and adds it the the reference's meta map for later downstream processes [PR #24](https://github.com/phac-nml/measeq/pull/24)
 
-- New paramter for read filtering for ONT data
+- New paramter for read filtering for ONT data [PR #24](https://github.com/phac-nml/measeq/pull/24)
   - `--ont_min_read_length`
 
 ### `Adjusted`
 
-Major changes to the pipeline's workflow to create a channel for every process input that requires matching sample and reference data to ensure each process uses the correct reference files that match the sample's genotype.
+Major changes to the pipeline's workflow to create a channel for every process input that requires matching sample and reference data to ensure each process uses the correct reference files that match the sample's genotype[PR #24](https://github.com/phac-nml/measeq/pull/24)
 
-Various minor tweaks have been made to input/output handling within processes across the pipeline to support the per-sample worklfow.
+Various minor tweaks have been made to input/output handling within processes across the pipeline to support the per-sample worklfow [PR #24](https://github.com/phac-nml/measeq/pull/24)
 
-The report generation process was adjusted to allow for a higher memory threshold to allow more samples to be included within one run.
+The report generation process was adjusted to allow for a higher memory threshold to allow more samples to be included within one run [PR #24](https://github.com/phac-nml/measeq/pull/24)
 
 ## [v0.4.3] - 2025-11-07
 
