@@ -83,7 +83,7 @@ The pipeline is built using Nextflow and processes data using the following step
 
 </details>
 
-A script is used to predict a sample's genotype using a supplemented measles WHO N450 reference dataset. The predicted genotype is used to select a reference FASTA file for the sample based on the preset genotype specific reference files (A, B3, D8) included with the pipeline. If a sample is predicted to be another genotype, then the pipeline defaults to the D8 reference file.
+A script is used to predict a sample's genotype using a supplemented measles WHO N450 reference dataset. The predicted genotype is used to select a reference FASTA file for the sample based on the preset genotype specific reference files (A, B3, D8) included with the pipeline. If a sample is either not assigned a genotype or predicted as a not currently supported genotype, then that sample is ran with the set `--default_ref` genome. This is configured to be the same reference file as the D8 genome but can be adjusted.
 
 #### Generate Reference Intermediates
 

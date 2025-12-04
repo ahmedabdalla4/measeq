@@ -9,7 +9,7 @@ process SAMTOOLS_DEPTH {
 
     input:
     tuple val(meta), path(bam)
-    tuple val(meta2), val(intervals)
+    tuple val(meta2), path(intervals)
 
     output:
     tuple val(meta), path("*.tsv"), emit: tsv

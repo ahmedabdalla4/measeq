@@ -149,7 +149,7 @@ Additional or local models can also be used, you just have to provide a path to 
 
 ### Reference Assignment
 
-With [MeaSeq v0.5.0](https://github.com/phac-nml/measeq/releases/tag/0.5.0), we have simplified the pipeline's running command by not requiring the `--reference` parameter. Within this update, we have moved to a per-sample reference assignment based on predicting the input sample's most likely genotype. In doing so, we have preset 3 reference files based on three measles virus genotypes (B3, D8, A). If a sample is predicted to be one of these genotypes, then the pipeline processes the sample using the corresponding reference FASTA file. If the sample's most likely genotype doesn't correspond to one of these genotypes, then the pipeline defaults to using the D8 reference FASTA file for that sample.
+With [MeaSeq v0.5.0](https://github.com/phac-nml/measeq/releases/tag/0.5.0), we have simplified the pipeline's running command by not requiring the `--reference` parameter. Within this update, we have moved to a per-sample reference assignment based on predicting the input sample's most likely genotype. In doing so, we have preset 3 reference files based on three measles virus genotypes (B3, D8, A). If a sample is predicted to be one of these genotypes, then the pipeline processes the sample using the corresponding reference FASTA file. If the sample's most likely genotype doesn't correspond to one of these genotypes, then the pipeline defaults to the set `--default_ref` reference FASTA file which matches the D8 reference genome by default.
 
 #### Specifying your own reference FASTA file
 
