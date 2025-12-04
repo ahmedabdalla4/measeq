@@ -15,6 +15,7 @@ include { SPLIT_AMPLICON_REGION      } from '../../../modules/local/input_utils/
 include { GENERATE_AMPLICON_BED      } from '../../../modules/local/input_utils/main'
 include { NEXTCLADE_RUN as NEXTCLADE_RUN_REFERENCE } from '../../../modules/nf-core/nextclade/run/main'
 include { ADJUST_FASTA_HEADER        } from '../../../modules/local/artic/subcommands/main'
+include { EXTRACT_GENOTYPE        } from '../../../modules/local/custom/extract_genotype/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,34 +26,14 @@ include { ADJUST_FASTA_HEADER        } from '../../../modules/local/artic/subcom
 workflow SETUP_REFERENCE_DATA {
 
     take:
-    reference           // value: path to reference file or null
-    bed                 // value: path to primer bed file or null
+    ch_reference        // channel: tuple meta[ref_id], fasta
+    ch_primer_bed       // channel: tuple meta[ref_id], primer_bed : null
     nextclade_dataset   // channel: [ dataset ]
 
     main:
     ch_versions            = Channel.empty()
-    ch_primer_bed          = bed ? Channel.value(file(bed, type: 'file', checkIfExists: true)) : Channel.empty()
-    ch_split_amp_pools_bed = Channel.empty()
     ch_amplicon_bed        = Channel.empty()
-
-    //
-    // Logic - Need to have a reference file input at minimum
-    //
-    if ( !reference ) {
-        error "Please provide a measles '--reference' fasta file to run"
-    }
-
-    //
-    // Create reference meta-map for downstream steps
-    //  The irida_id key is there to not error out when creating the upload file with nf-iridanext
-    Channel
-        .value(file(reference, type: 'file', checkIfExists: true))
-        .map { file ->
-            def firstLine = file.withReader { it.readLine() }
-            def meta = [id: firstLine.split()[0].replace('>', ''), irida_id: 'reference']
-            [meta, file]
-        }
-        .set { ch_reference }
+    ch_split_amp_pools_bed = Channel.empty()
 
     //
     // MODULE: Generate intermediate reference files
@@ -65,7 +46,7 @@ workflow SETUP_REFERENCE_DATA {
     //
     // Generate needed files if we have a primer scheme
     //
-    if ( ch_primer_bed ) {
+    if ( params.amplicon || params.primer_bed ) {
         //
         // MODULE: Generate amplicon bed for reporting
         //
@@ -81,15 +62,14 @@ workflow SETUP_REFERENCE_DATA {
         SPLIT_AMPLICON_REGION(
             ch_amplicon_bed
         )
+        ch_split_amp_pools_bed = SPLIT_AMPLICON_REGION.out.bed
+            .flatMap { meta, bed_files ->
+                bed_files.collect { bedF ->
+                    tuple(meta + [ pool: bedF.baseName ], file(bedF))
+                }
+            }
 
-        // Format amplicon bed files channel to be [ val(name), path(bed_file) ]
-        //  Mostly for clair3 to run on specific pools
-        SPLIT_AMPLICON_REGION.out.bed
-                .flatten()
-                .map{ bedF -> [ bedF.baseName, file(bedF) ] }
-                .set { ch_split_amp_pools_bed }
     }
-
     //
     // MODULE: Run nextclade on the reference to get the genotype and N450
     //
@@ -109,23 +89,28 @@ workflow SETUP_REFERENCE_DATA {
         '-N450'
     )
 
-    // Get the genotype from the nextclade output as a value channel
-    NEXTCLADE_RUN_REFERENCE.out.csv
-        .map{ meta, csv -> csv }
-        .splitCsv(sep: ';', header: true, limit:1)
-        .map{ row -> row.clade }
-        .first()
-        .set { ch_genotype }
+    //
+    // MODULE: Extract genotype
+    //
+    EXTRACT_GENOTYPE(
+        NEXTCLADE_RUN_REFERENCE.out.csv
+    )
+    ch_genotype = EXTRACT_GENOTYPE.out.genotype
+        .map { meta, genotype -> tuple(meta.id, genotype.trim()) }
+
+    // Add genotype to the reference channel
+    ch_reference = ch_reference
+        .map { meta, fasta -> tuple(meta.id, meta, fasta) }
+        .join(ch_genotype, by: [0])
+        .map { _meta_id, meta, fasta, genotype -> tuple(meta + [genotype: genotype], fasta) }
 
     emit:
-    reference           = ch_reference
-    fai                 = GENERATE_REF_INTERMEDIATES.out.fai
-    refstats            = GENERATE_REF_INTERMEDIATES.out.refstats
-    genome_bed          = GENERATE_REF_INTERMEDIATES.out.genome_bed
-    primer_bed          = ch_primer_bed
-    amplicon_bed        = ch_amplicon_bed
-    split_amp_pools_bed = ch_split_amp_pools_bed
-    ref_n450            = ADJUST_FASTA_HEADER.out.consensus
-    genotype              = ch_genotype
-    versions            = ch_versions
+    reference           = ch_reference                               // channel: [ meta(ref_id, genotype), fasta ]
+    fai                 = GENERATE_REF_INTERMEDIATES.out.fai         // channel: [ meta(ref_id), *.fai ]
+    refstats            = GENERATE_REF_INTERMEDIATES.out.refstats    // channel: [ meta(ref_id), refstats ]
+    genome_bed          = GENERATE_REF_INTERMEDIATES.out.genome_bed  // channel: [ meta(ref_id), genome.bed ]
+    amplicon_bed        = ch_amplicon_bed                            // channel: [ meta(ref_id), amplicon.bed ]
+    split_amp_pools_bed = ch_split_amp_pools_bed                     // channel: [ meta(ref_id, pool), *.bed ]
+    ref_n450            = ADJUST_FASTA_HEADER.out.consensus          // channel: [ meta(ref_id), consensus ]
+    versions            = ch_versions                                // channel: [ path(versions.yml) ]
 }

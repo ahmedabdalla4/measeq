@@ -52,7 +52,6 @@ process SAMTOOLS_SORT {
         ${reference} \\
         -o ${output_file} \\
         -
-
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')
@@ -77,7 +76,6 @@ process SAMTOOLS_SORT {
     """
     touch ${prefix}.${extension}
     ${index}
-
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         samtools: \$(echo \$(samtools --version 2>&1) | sed 's/^.*samtools //; s/Using.*\$//')

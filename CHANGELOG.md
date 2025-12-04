@@ -3,6 +3,29 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.5.0] - 2025-12-01
+
+The pipeline has been reorganized to run each sample with it's own reference to allow for the prediction of each sample's genotype and its mapping to its appropriate reference.
+
+The default running inputs have been simplified to not require the `--reference` parameter. The parameter is still retained and able to be used by the user. However, by default, the pipeline will now automatically do genotyping and reference assignment. This is done to improve the accuracy of the outputs and streamline the workflow when there is a mix of sample genotypes.
+
+### `Added`
+
+- `PREDICT_GENOTYPE` is a python script that uses `minimap2`, `samtools`, and the WHO's N450 measles database to predict the most likely genotype of each sample and automatically selects the appropriate reference for downstream mapping [PR #24](https://github.com/phac-nml/measeq/pull/24)
+
+- `EXTRACT_GENOTYPE` is a quick script that retries each reference's genotype and adds it the the reference's meta map for later downstream processes [PR #24](https://github.com/phac-nml/measeq/pull/24)
+
+- New paramter for read filtering for ONT data [PR #24](https://github.com/phac-nml/measeq/pull/24)
+  - `--ont_min_read_length`
+
+### `Adjusted`
+
+Major changes to the pipeline's workflow to create a channel for every process input that requires matching sample and reference data to ensure each process uses the correct reference files that match the sample's genotype[PR #24](https://github.com/phac-nml/measeq/pull/24)
+
+Various minor tweaks have been made to input/output handling within processes across the pipeline to support the per-sample worklfow [PR #24](https://github.com/phac-nml/measeq/pull/24)
+
+The report generation process was adjusted to allow for a higher memory threshold to allow more samples to be included within one run [PR #24](https://github.com/phac-nml/measeq/pull/24)
+
 ## [v0.4.3] - 2025-11-07
 
 Adjusting alignment filtering for both nanopore and Illumina data to remove supplementary reads and secondary reads. The supplementary reads were rarely adding in artifacts to the final consensus sequence including SNPs and INDELs that only they contained. This lowers read counts slightly but provides more accurate consensus sequences based on testing.
@@ -180,6 +203,7 @@ Small addition of Picard MarkDuplicates workflow along with some new tests
 
 - MeaSeq pipeline created and initial code added
 
+[v0.5.0]: https://github.com/phac-nml/measeq/releases/tag/0.5.0
 [v0.4.3]: https://github.com/phac-nml/measeq/releases/tag/0.4.3
 [v0.4.2]: https://github.com/phac-nml/measeq/releases/tag/0.4.2
 [v0.4.1]: https://github.com/phac-nml/measeq/releases/tag/0.4.1

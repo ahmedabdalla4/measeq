@@ -37,11 +37,11 @@ include { VCF_TO_TSV              } from '../../../modules/local/custom/vcf_to_t
 workflow NANOPORE_CONSENSUS {
 
     take:
-    ch_reference           // channel: [ [id], fasta ]
-    ch_reference_fai       // channel: [ fai ]
-    ch_input_fastqs        // channel: [ [id, single_end], fastqs ]
-    ch_primer_bed          // channel: [ bed ]
-    ch_split_amp_pools_bed // channel: [ pool, bed ]
+    ch_reference            // channel: [ meta_ref, fasta ]
+    ch_fai                  // channel: [ meta_ref, fai ]
+    ch_samples              // channel: [ meta[id, single_end, ref_id], fastqs ]
+    ch_primer_bed           // channel: [ meta_ref, bed ]
+    ch_split_amp_pools_bed  // channel: [ meta, bed ]
 
     main:
     ch_versions = Channel.empty()
@@ -63,7 +63,7 @@ workflow NANOPORE_CONSENSUS {
     // MODULE: Run Nanoq for input fastq quality filtering
     //
     NANOQ(
-        ch_input_fastqs,
+        ch_samples,
         'fastq'
     )
     ch_versions = ch_versions.mix(NANOQ.out.versions.first())
@@ -71,52 +71,118 @@ workflow NANOPORE_CONSENSUS {
     //
     // MODULE: Run Minimap2
     //
+
+    // Prepare Input
+    ch_minimap_input = NANOQ.out.reads
+        .map { meta, reads -> tuple(meta.ref_id, meta, reads) }
+        .combine(ch_reference.map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }, by: 0)
+        .multiMap { _ref_id, meta, reads, meta_ref, fasta ->
+            reads: tuple(meta, reads)
+            reference: tuple(meta_ref, fasta)
+        }
+
+    // Run Module
     MINIMAP2_ALIGN(
-        NANOQ.out.reads,
-        ch_reference
+        ch_minimap_input.reads,
+        ch_minimap_input.reference
     )
     ch_versions = ch_versions.mix(MINIMAP2_ALIGN.out.versions.first())
+    ch_bam_bai = MINIMAP2_ALIGN.out.bam_bai
+
+    //
+    // Prepare CLAIR3 reference file before if statement
+    //
+    ch_ref_with_fai = ch_reference
+        .map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }
+        .join(ch_fai.map { meta_ref, fai -> tuple(meta_ref.id, fai) }, by: [0])
+        .map { ref_id, meta_ref, fasta, fai ->
+                tuple(ref_id, meta_ref, fasta, fai)
+        }
 
     //
     // PROCESS: Amplicon specific steps
     //
-    if ( params.primer_bed ) {
+    if ( params.amplicon || params.primer_bed ) {
         //
         // MODULE: Align trim
-        //  Trimming based on primers as there are a lot and don't want them
+        //  Trimming based on primers as there are a lot and we don't want them
         //  affecting the variants
+        //
+
+        // Prepare Input
+        ch_artic_align_input = ch_bam_bai
+            .map { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+            .combine(ch_primer_bed.map { meta_ref, bed -> tuple(meta_ref.id, bed) }, by: 0)
+            .multiMap { _ref_id, meta, bam, bai, bed ->
+                bam_bai: tuple(meta, bam, bai)
+                bed: bed
+            }
+
+        // Run Module
         ARTIC_ALIGN_TRIM (
-            MINIMAP2_ALIGN.out.bam_bai,
-            ch_primer_bed,
+            ch_artic_align_input.bam_bai,
+            ch_artic_align_input.bed,
             'primers'
         )
         ch_versions = ch_versions.mix(ARTIC_ALIGN_TRIM.out.versions.first())
-        ch_trimmed_bams_w_pool = ARTIC_ALIGN_TRIM.out.bam.combine(ch_split_amp_pools_bed)
         ch_bam = ARTIC_ALIGN_TRIM.out.bam
 
         //
         // MODULE: Clair3 with pools
         //  Each pools run separately for variant calls
+        //
+
+        // Prepare Inputs
+        ch_trimmed_bams_w_pool = ch_bam
+            .map { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+            .combine(ch_split_amp_pools_bed.map { meta_ref_pool, pool_bed -> tuple(meta_ref_pool.id, meta_ref_pool.pool, pool_bed) }, by: 0)
+            .map { _ref_id, meta, bam, bai, pool, pool_bed ->
+                tuple(meta, bam, bai, pool, pool_bed)
+            }
+
+        // Combine input with reference data
+        ch_clair3_inputs = ch_trimmed_bams_w_pool
+            .map {meta, bam, bai, pool, pool_bed -> tuple(meta.ref_id, meta, bam, bai, pool, pool_bed) }
+            .combine(ch_ref_with_fai, by: 0)
+            .multiMap { _ref_id, meta, bam, bai, pool, pool_bed, meta_ref, fasta, fai ->
+                bam_pool: tuple(meta, bam, bai, pool, pool_bed)
+                reference: tuple(meta_ref, fasta)
+                fai: fai
+            }
+
+        // Run Module
         CLAIR3_POOL(
-            ch_trimmed_bams_w_pool,
-            ch_reference,
-            ch_reference_fai,
+            ch_clair3_inputs.bam_pool,
+            ch_clair3_inputs.reference,
+            ch_clair3_inputs.fai,
             ch_model
         )
         ch_versions = ch_versions.mix(CLAIR3_POOL.out.versions.first())
 
         // Merge pools by merging the vcf files for each pool together
         CLAIR3_POOL.out.vcf
-            .map { it -> tuple(it[0], tuple(it[1], it[2])) }
+            .map { meta, vcf, pool -> tuple(meta, tuple(vcf, pool)) }
             .groupTuple()
-            .set { ch_pooled_vcfs } // Channel: [ val(meta), [[path(vcf), val(pool)], [...]] ]
+            .set { ch_pooled_vcfs }
 
         //
         // MODULE: Merge pooled VCFs
         //  To merge vcfs, have to utilize the transformVCFList function based on how artic handles input
+        //
+
+        // Prepare Input
+        ch_artic_vcf_input = ch_pooled_vcfs
+            .map { meta, vcf_tuples -> tuple(meta.ref_id, meta, vcf_tuples) }
+            .combine(ch_primer_bed.map { meta_ref, bed -> tuple(meta_ref.id, bed) }, by: 0)
+            .multiMap { _ref_id, meta, vcf_tuples, bed ->
+                vcf: tuple(meta, vcf_tuples)
+                bed: bed
+            }
+
+        // Run Module
         ARTIC_VCF_MERGE(
-            ch_pooled_vcfs,
-            ch_primer_bed
+            ch_artic_vcf_input.vcf,
+            ch_artic_vcf_input.bed
         )
         ch_versions = ch_versions.mix(ARTIC_VCF_MERGE.out.versions.first())
         ch_vcf = ARTIC_VCF_MERGE.out.vcf
@@ -124,35 +190,70 @@ workflow NANOPORE_CONSENSUS {
         //
         // MODULE: Make depth mask based on minimum depth to call position
         //
+
+        // Prepare Inputs
+        ch_artic_depth_input = ch_bam
+            .map { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+            .combine(ch_reference.map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }, by: 0)
+            .multiMap { _ref_id, meta, bam, bai, meta_ref, fasta ->
+                reference: tuple(meta_ref, fasta)
+                bam_bai: tuple(meta, bam, bai)
+            }
+
+        // Run Module
         ARTIC_MAKE_DEPTH_MASK(
-            ch_bam,
-            ch_reference
+            ch_artic_depth_input.bam_bai,
+            ch_artic_depth_input.reference
         )
         ch_versions = ch_versions.mix(ARTIC_MAKE_DEPTH_MASK.out.versions.first())
         ch_depth_mask = ARTIC_MAKE_DEPTH_MASK.out.coverage_mask
+
     } else {
         //
         // PROCESS: Non-Amplicon based data
         //
 
-        //
         // MODULE: Clair3 with no pool splitting
         //
+
+        // Prepare Inputs
+        ch_no_pool_input = ch_bam_bai
+            .map  { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+            .combine(ch_ref_with_fai, by: 0)
+            .multiMap { _ref_id, meta, bam, bai, meta_ref, fasta , fai ->
+                bam_bai: tuple(meta, bam, bai)
+                reference: tuple(meta_ref, fasta)
+                fai: fai
+            }
+
+        // Run Module
         CLAIR3_NO_POOL(
-            MINIMAP2_ALIGN.out.bam_bai,
-            ch_reference,
-            ch_reference_fai,
+            ch_no_pool_input.bam_bai,
+            ch_no_pool_input.reference,
+            ch_no_pool_input.fai,
             ch_model
         )
         ch_versions = ch_versions.mix(CLAIR3_NO_POOL.out.versions.first())
         ch_vcf = CLAIR3_NO_POOL.out.vcf
 
+
         //
         // MODULE: Make depth mask based on minimum depth to call position
         //
+
+        // Prepare Inputs
+        ch_custom_depth_input = ch_bam_bai
+            .map  { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+            .combine(ch_reference.map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }, by: 0)
+            .multiMap { _ref_id, meta, bam, bai, meta_ref, fasta ->
+                bam_bai: tuple(meta, bam, bai)
+                reference: tuple(meta_ref, fasta)
+            }
+
+        // Run Module
         CUSTOM_MAKE_DEPTH_MASK(
-            MINIMAP2_ALIGN.out.bam_bai,
-            ch_reference
+            ch_custom_depth_input.bam_bai,
+            ch_custom_depth_input.reference
         )
         ch_versions = ch_versions.mix(CUSTOM_MAKE_DEPTH_MASK.out.versions.first())
         ch_depth_mask = CUSTOM_MAKE_DEPTH_MASK.out.coverage_mask
@@ -166,13 +267,31 @@ workflow NANOPORE_CONSENSUS {
         ch_vcf
     )
     ch_versions = ch_versions.mix(CUSTOM_VCF_FILTER.out.versions.first())
+    ch_fail_vcf = CUSTOM_VCF_FILTER.out.fail_vcf
 
     //
     // MODULE: Mask failing regions
     //
+
+    // Prepare Inputs
+    // Join depth and failed VCF
+    ch_mask_inputs = ch_depth_mask
+        .map { meta, cov -> tuple(meta.id, meta, cov)}
+        .join(ch_fail_vcf.map { meta, fail -> tuple(meta.id, fail) })
+        .map  { _meta_id, meta, cov, fail -> tuple(meta.ref_id, meta, cov, fail) }
+
+    // Combine with reference
+    ch_mask_input = ch_mask_inputs
+        .combine(ch_reference.map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }, by: 0)
+        .multiMap { _ref_id, meta, cov, fail, meta_ref, fasta ->
+            coverage_mask: tuple(meta, cov, fail)
+            reference: tuple(meta_ref, fasta)
+        }
+
+    // Run Module
     ARTIC_MASK(
-        ch_depth_mask.join(CUSTOM_VCF_FILTER.out.fail_vcf, by: [0]),
-        ch_reference
+        ch_mask_input.coverage_mask,
+        ch_mask_input.reference
     )
     ch_versions = ch_versions.mix(ARTIC_MASK.out.versions.first())
 
@@ -198,14 +317,24 @@ workflow NANOPORE_CONSENSUS {
     //
     // MODULE: Adjust the final fasta header for easier downstream analysis
     //
+
+    // Prepare Inputs
+    ch_adjust_input = BCFTOOLS_CONSENSUS.out.fasta
+        .map { meta, con_fasta -> tuple(meta.ref_id, meta, con_fasta) }
+        .combine(ch_reference.map { meta_ref, ref_fasta -> tuple(meta_ref.id, meta_ref, ref_fasta) }, by: 0)
+        .multiMap { _ref_id, meta, con_fasta, meta_ref, ref_fasta ->
+            consensus: tuple(meta, con_fasta)
+            reference: tuple(meta_ref, ref_fasta)
+        }
+
+    // Run Module
     ADJUST_FASTA_HEADER(
-        BCFTOOLS_CONSENSUS.out.fasta,
-        ch_reference,
+        ch_adjust_input.consensus,
+        ch_adjust_input.reference,
         '.consensus',
         ''
     )
     ch_versions = ch_versions.mix(ADJUST_FASTA_HEADER.out.versions.first())
-
 
     //
     // MODULE: Create TSV from VCF for final report
@@ -215,10 +344,10 @@ workflow NANOPORE_CONSENSUS {
     )
 
     emit:
-    nanoq_json   = NANOQ.out.stats
-    consensus    = ADJUST_FASTA_HEADER.out.consensus
-    bam_bai      = ch_bam
-    vcf          = BCFTOOLS_NORM.out.vcf
-    variants_tsv = VCF_TO_TSV.out.tsv
-    versions     = ch_versions
+    nanoq_json   = NANOQ.out.stats                      // channel: [ meta, *.json]
+    consensus    = ADJUST_FASTA_HEADER.out.consensus    // channel: [ meta, fasta ]
+    bam_bai      = ch_bam                               // channel: [ meta, bam, bai ]
+    vcf          = BCFTOOLS_NORM.out.vcf                // channel: [ meta, vcf, tbi ]
+    variants_tsv = VCF_TO_TSV.out.tsv                   // channel: [ meta, *.tsv ]
+    versions     = ch_versions                          // channel: [ path(versions.yml) ]
 }

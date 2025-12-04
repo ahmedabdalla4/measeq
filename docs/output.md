@@ -17,6 +17,7 @@ The pipeline is built using Nextflow and processes data using the following step
 
 - [Setup](#setup)
 
+  - [Genotype Prediction](#genotype-prediction) - Predict the sample's genotype and choose the correct reference to map reads to
   - [Generate Reference Intermediates](#generate-reference-intermediates) - Generate intermediate files based on the reference for downstream steps
   - [Generate Amplicon Intermediates](#generate-amplicon-intermediates) - Generate intermediate files based on primer bed file for downstream steps
   - [Get Nextclade Reference](#get-nextclade-reference) - Pull the nextclade N450 measles dataset
@@ -72,6 +73,17 @@ The pipeline is built using Nextflow and processes data using the following step
   - [Generate Final Report](#generate-final-report) - Generate final report
 
 ### Setup
+
+#### Genotype Prediction
+
+<details markdown="1">
+<summary>Output files</summary>
+
+- `prediction.csv`: file containing each sample's predicted genotype with other metrics regarding the prediction quality
+
+</details>
+
+A script is used to predict a sample's genotype using a supplemented measles WHO N450 reference dataset. The predicted genotype is used to select a reference FASTA file for the sample based on the preset genotype specific reference files (A, B3, D8) included with the pipeline. If a sample is either not assigned a genotype or predicted as a not currently supported genotype, then that sample is ran with the set `--default_ref` genome. This is configured to be the same reference file as the D8 genome but can be adjusted.
 
 #### Generate Reference Intermediates
 
@@ -572,6 +584,7 @@ Format:
 ```
 OUTDIR
 ├── Amplicon_Report.html (if amplicons)
+├── predictions.csv
 ├── bam
 |  ├── bwamem
 |  |   ├── SAMPLE.sorted.bam
@@ -645,6 +658,7 @@ OUTDIR
 ```
 OUTDIR
 ├── Amplicon_Report.html (if amplicons)
+├── predictions.csv
 ├── bam
 |  ├── artic (if amplicons)
 |  |   ├── SAMPLE.amplicon_depths.tsv

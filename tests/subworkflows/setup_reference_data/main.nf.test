@@ -1,0 +1,64 @@
+nextflow_workflow {
+
+    name "Test of Reference Setup Subworkflow with Optional Params"
+    script "subworkflows/local/setup_reference_data/main.nf"
+    workflow "SETUP_REFERENCE_DATA"
+    tag "subworkflows"
+    tag "reference"
+
+    setup {
+        run("NEXTCLADE_DATASETGET") {
+            script "modules/nf-core/nextclade/datasetget/main.nf"
+            process {
+                """
+                input[0] = 'nextstrain/measles/N450/WHO-2012'
+                input[1] = '2025-03-26--11-47-13Z'
+
+                """
+            }
+        }
+    }
+
+
+    test("Reference Setup Workflow with Optional") {
+        tag "success"
+        when {
+            workflow {
+                """
+                input[0] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/assets/reference/D8/MH356245.1.reference.fasta")
+                        ]
+                    )
+                input[1] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/test_data/primer.bed")
+                        ]
+                    )
+                input[2] = NEXTCLADE_DATASETGET.out.dataset
+                """
+            }
+            params {
+                outdir = "results"
+                primer_bed = "$baseDir/test_data/primer.bed"
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success }
+            )
+
+            // Files exist
+            // Reference Intermediates
+            assert path("${launchDir}/results/reference/genome.bed").exists()
+            assert path("${launchDir}/results/reference/amplicon.bed").exists()
+            assert path("${launchDir}/results/reference/refstats.txt").exists()
+            assert path("${launchDir}/results/reference/MH356245.1.reference.fasta.fai").exists()
+            // Amplicon Regions
+            assert path("${launchDir}/results/reference/amplicon_regions/1.bed").exists()
+            assert path("${launchDir}/results/reference/amplicon_regions/2.bed").exists()
+        }
+    }
+}

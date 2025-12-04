@@ -11,8 +11,7 @@ process IVAR_TRIM {
         'biocontainers/ivar:1.4.4--h077b44d_0' }"
 
     input:
-    tuple val(meta), path(bam), path(bai)
-    path bed
+    tuple val(meta), path(bam), path(bai), path(bed)
 
     output:
     tuple val(meta), path("${meta.id}.primertrimmed.sorted.bam"), path("${meta.id}.primertrimmed.sorted.bam.bai"), emit: bam

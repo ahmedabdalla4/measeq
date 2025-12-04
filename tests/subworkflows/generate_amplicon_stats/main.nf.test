@@ -1,0 +1,58 @@
+nextflow_workflow {
+
+    name "Test of Amplicon Stats and Report Generation"
+    script "subworkflows/local/generate_amplicon_stats/main.nf"
+    workflow "GENERATE_AMPLICON_STATS"
+    tag "subworkflows"
+    tag "reports"
+
+    test("Amplicon Stats and Report Generation") {
+        tag "success"
+        when {
+            workflow {
+                """
+                input[0] = Channel.of(
+                        [
+                            [id: "sample1", single_end: true, ref_id: "MH356245.1"],
+                            file("$baseDir/test_data/report_generation/sample1.primertrimmed.rg.sorted.bam"),
+                            file("$baseDir/test_data/report_generation/sample1.primertrimmed.rg.sorted.bai")
+                        ]
+                    )
+                input[1] = Channel.of(
+                        [
+                            [id: "sample1", single_end: true, ref_id: "MH356245.1"],
+                            file("$baseDir/test_data/report_generation/sample1.consensus.fasta")
+                        ]
+                    )
+                input[2] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/test_data/primer.bed")
+                        ]
+                    )
+
+                """
+            }
+            params {
+                outdir = "results"
+                primer_bed = "$baseDir/test_data/primer.bed"
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success }
+            )
+
+            // Files exist
+            // Amplicon Stats
+            assert path("${launchDir}/results/reporting/amplicon/sample1_amplicon_completeness.tsv").exists()
+            assert path("${launchDir}/results/reporting/amplicon/sample1_amplicon_depth.tsv").exists()
+            assert path("${launchDir}/results/reporting/amplicon/sample1_amplicon_stats.bed").exists()
+            assert path("${launchDir}/results/reporting/amplicon/amplicon_completeness_heatmap_mqc.tsv").exists()
+            assert path("${launchDir}/results/reporting/amplicon/amplicon_depth_full.tsv").exists()
+            assert path("${launchDir}/results/reporting/amplicon/amplicon_depth_heatmap_mqc.tsv").exists()
+            // Amplicon Report
+            assert path("${launchDir}/results/Amplicon-Summary-MultiQC-Report_multiqc_report.html").exists()
+        }
+    }
+}

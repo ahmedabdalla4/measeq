@@ -23,24 +23,29 @@ include { AMPLICON_MULTIQC              } from '../../../modules/local/multiqc/a
 workflow GENERATE_AMPLICON_STATS {
 
     take:
-    ch_bam_bai              // channel: [ [id], bam, bai ]
-    ch_consensus            // channel: [ [id], fasta ]
-    ch_amplicon_bed         // channel: [ bed ]
+    ch_bam_bai              // channel: [ meta, bam, bai ]
+    ch_consensus            // channel: [ meta, fasta ]
+    ch_amplicon_bed         // channel: [ meta_ref, bed ]
 
     main:
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
     ch_multiqc_config = Channel.fromPath("$projectDir/assets/amplicon_multiqc_config.yml", checkIfExists: true)
 
-    // Setting input up for bedtools coverage
-    ch_bam_bai
-        .combine(ch_amplicon_bed) // Channel is [meta, bam, bai, bed]
-        .map{ it -> [it[0], it[3], it[1]] } // Channel ends [meta, bed, bam]
-        .set{ ch_bedtools_input }
 
     //
     // MODULE: Run bedtools coverage
     //
+
+    // Prepare Inputs
+    ch_bedtools_input = ch_bam_bai
+        .map{ meta, bam, bai -> tuple(meta.ref_id, meta, bam) }
+        .combine(ch_amplicon_bed.map { meta_ref, bed -> tuple(meta_ref.id, meta_ref, bed) }, by: 0)
+        .map { _ref_id, meta, bam, _meta_ref, bed ->
+            tuple(meta, bed, bam)
+        }
+
+    // Run Module
     BEDTOOLS_COVERAGE(
         ch_bedtools_input,
         []
@@ -54,30 +59,38 @@ workflow GENERATE_AMPLICON_STATS {
         BEDTOOLS_COVERAGE.out.bed
     )
     ch_versions = ch_versions.mix(SAMPLE_AMPLICON_DEPTH.out.versions.first())
-    ch_multiqc_files = ch_multiqc_files.mix(SAMPLE_AMPLICON_DEPTH.out.tsv.collect{ it -> it[1] })
+    ch_multiqc_files = ch_multiqc_files.mix(SAMPLE_AMPLICON_DEPTH.out.tsv.collect { _meta, tsv -> tsv } )
 
     //
     // MODULE: Summarize and reformat amplicon depth into a matrix for multiqc heatmap reporting
     //
     AMPLICON_DEPTH_HEATMAP(
-        BEDTOOLS_COVERAGE.out.bed.collect{ it[1] }
+        BEDTOOLS_COVERAGE.out.bed.collect { _meta, path -> path }
     )
     ch_multiqc_files = ch_multiqc_files.mix(AMPLICON_DEPTH_HEATMAP.out.heatmap_tsv)
 
     //
     // MODULE: Calculate the per-amplicon completeness with custom python script
     //
+
+    // Prepare Inputs
+    ch_completeness_input = ch_consensus
+        .map { meta, con_fasta -> tuple(meta.ref_id, meta, con_fasta) }
+        .combine(ch_amplicon_bed.map { meta_ref, bed -> tuple(meta_ref.id, bed) }, by: 0)
+        .map { _ref_id, meta, con_fasta, bed -> tuple(meta, con_fasta, bed) }
+
+    // Run Module
     SAMPLE_AMPLICON_COMPLETENESS(
-        ch_consensus,
-        ch_amplicon_bed
+        ch_completeness_input
     )
     ch_versions = ch_versions.mix(SAMPLE_AMPLICON_COMPLETENESS.out.versions)
+    ch_amplicon_heatmap_input = SAMPLE_AMPLICON_COMPLETENESS.out.tsv.collect{ _meta, tsv -> tsv }
 
     //
     // MODULE: Summarize the per-amplicon completeness with csvtk into a matrix for multiqc heatmap
     //
     AMPLICON_COMPLETENESS_HEATMAP(
-        SAMPLE_AMPLICON_COMPLETENESS.out.tsv.collect{ it -> it[1] }
+        ch_amplicon_heatmap_input
     )
     ch_multiqc_files = ch_multiqc_files.mix(AMPLICON_COMPLETENESS_HEATMAP.out.heatmap_tsv)
 
@@ -90,5 +103,5 @@ workflow GENERATE_AMPLICON_STATS {
     )
 
     emit:
-    versions = ch_versions
+    versions = ch_versions  // channel: [ path(versions.yml) ]
 }

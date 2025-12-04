@@ -1,5 +1,5 @@
 process MAKE_CUSTOM_REPORT {
-    label 'process_medium'
+    label 'process_high_memory'
 
     conda "${moduleDir}/environment.yml"
     container "docker.io/darianhole/measeq-report:latest"
@@ -12,7 +12,6 @@ process MAKE_CUSTOM_REPORT {
     path variation_csvs
     path variants_tsv
     path normalized_depth_csv
-    val genotype
     path report_template
     path subpages
     path version_yml
@@ -49,7 +48,6 @@ process MAKE_CUSTOM_REPORT {
     Rscript -e "rmarkdown::render(
         '$report_template',
         params = list(
-            genotype = '$genotype',
             overall_qc = '$overall_qc_csv',
             version = '$pipeline_version',
             revision = '$revision',
