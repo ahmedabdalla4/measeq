@@ -2,6 +2,8 @@ process EXTRACT_GENOTYPE {
     tag "$meta.id"
     label 'process_low'
 
+    container "biocontainers/coreutils:8.31--h14c3975_0"
+
     input:
     tuple val(meta), path(csv)
 
