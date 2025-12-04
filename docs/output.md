@@ -16,6 +16,7 @@ Once the pipeline has completed its run, several directories will be created wit
 The pipeline is built using Nextflow and processes data using the following steps:
 
 - [Setup](#setup)
+
   - [Genotype Prediction](#genotype-prediction) - Predict the sample's genotype and choose the correct reference to map reads to
   - [Generate Reference Intermediates](#generate-reference-intermediates) - Generate intermediate files based on the reference for downstream steps
   - [Generate Amplicon Intermediates](#generate-amplicon-intermediates) - Generate intermediate files based on primer bed file for downstream steps
@@ -23,6 +24,7 @@ The pipeline is built using Nextflow and processes data using the following step
   - [Nextclade Type Reference](#nextclade-type-reference) - Get the reference genotype using nextclade
 
 - [Illumina Processing](#illumina-processing)
+
   - [FastQC](#fastqc) - Untrimmed read QC plots
   - [Fastp](#fastp) - Trim paired-end illumina reads
   - [BWAMem2](#bwamem2) - Map to the provided measles reference
@@ -34,6 +36,7 @@ The pipeline is built using Nextflow and processes data using the following step
   - [BCFTools Consensus](#bcftools-consensus) - Generate final sample consensus sequence
 
 - [Nanopore Processing](#nanopore-processing)
+
   - [FastQC](#fastqc) - Untrimmed read QC plots
   - [Artic Get Models](#artic-get-models) - Download clair3 models
   - [NanoQ](#nanoq) - Trim nanopore reads
@@ -48,6 +51,7 @@ The pipeline is built using Nextflow and processes data using the following step
   - [VCF to TSV](#vcf-to-tsv) - Generate a TSV file based on the VCF to feed into final report
 
 - [Quality Control](#quality-control)
+
   - [Nextclade](#nextclade) - Run nextclade on N450 dataset to get genotype and the custom dataset to get frameshift and nonsense mutations
   - [Samtools Depth](#samtools-depth) - Calculate and summarize per-position depth
   - [Compare DSId](#compare-dsid) - Compare sample N450 to DSId fasta N450 to type sample
@@ -55,6 +59,7 @@ The pipeline is built using Nextflow and processes data using the following step
   - [Make Final QC](#make-final-qc) - Concatenate all sample QC and check controls for a final run evaluation
 
 - [Amplicon Stats Workflow](#amplicon-stats-workflow)
+
   - [Bedtools Coverage](#bedtools-coverage) - Calculate the depth across each amplicon
   - [Sample Amplicon Depth](#sample-amplicon-depth) - Pull out relevant depth headers and info
   - [Sample Amplicon Completeness](#sample-amplicon-completeness) - Calculate how many Ns are in each amplicon based on the final consensus sequence

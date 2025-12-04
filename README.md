@@ -29,7 +29,9 @@
 ### _2025-12-01_ Summary
 
 - Sample references are now set based on the predicted genotype with a default fallback for non currently supported genotypes
+
   - Currently supported: A, B3, D8
+
     - Full support to come in `0.5.1`
 
   - Users can still set their own reference with `--reference`
@@ -61,11 +63,13 @@ Installation requires both [nextflow](https://www.nextflow.io/) at a minimum ver
 Steps:
 
 1. Download and install nextflow
+
    1. Download and install with [conda](https://docs.conda.io/en/latest/miniconda.html)
       - Conda command: `conda create -n nextflow -c conda-forge -c bioconda nextflow`
    2. Install with the instructions at https://www.nextflow.io/
 
 2. Determine which dependency management system works best for you
+
    - _Note_: Currently the plotting process is using a custom docker container but it should work for both docker and singularity
 
 3. Run the pipeline with one of the following profiles to handle dependencies (or use your [own profile](https://nf-co.re/docs/usage/getting_started/configuration)) if you have one for your institution!:
