@@ -1,5 +1,5 @@
-name: nf-core CI
-# This workflow runs the pipeline with the minimal test dataset to check that it completes without any syntax errors
+name: nf-core CI nf-test
+# This workflow runs the pipeline nf-test test suite
 on:
   push:
     branches:
@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   test:
-    name: "Run pipeline with test data (${{ matrix.NXF_VER }} | ${{ matrix.test_name }} | docker)"
+    name: "Run nf-test with test data on (${{ matrix.NXF_VER }} | ${{ matrix.test_name }} | docker)"
     # Only run on push if this is the nf-core dev branch (merged PRs)
     if: "${{ github.event_name != 'push' || (github.event_name == 'push' && github.repository == 'phac-nml/measeq') }}"
     runs-on: ubuntu-latest

@@ -5,9 +5,13 @@
 */
 
 // Helper function for combine VCFs in the format needed for artic merge
+//  Files are always NAME.POOL.vcf based on previous process
+//  So if the name has a . the size() - 2 hopefully gets the right number
 def transformVCFList (inputList) {
-    def transformedOutput = inputList.collect { entry ->
-        "${entry[1]}:${entry[0]}"
+    def transformedOutput = inputList.collect { vcf ->
+        def name_split = vcf.name.split(/\./)
+        def pool = name_split[name_split.size()-2]
+        "${pool}:${vcf}"
     }.join(" ")
     return transformedOutput
 }
@@ -91,7 +95,7 @@ process ARTIC_VCF_MERGE {
     //   The path(vcf) is turned into a string of the full path using the val() input type
     //   The process still works, just is a bit iffy I'd say
     input:
-    tuple val(meta), val(vcf_tuples)
+    tuple val(meta), path(vcfs)
     path primer_bed
 
     output:
@@ -99,13 +103,13 @@ process ARTIC_VCF_MERGE {
     path "versions.yml", emit: versions
 
     script:
-    def vcfs = transformVCFList(vcf_tuples)
+    def vcfs_in_str = transformVCFList(vcfs)
     """
     artic_vcf_merge \\
         ${meta.id} \\
         $primer_bed \\
         2> ${meta.id}.primersitereport.txt \\
-        $vcfs
+        $vcfs_in_str
 
     # Versions #
     cat <<-END_VERSIONS > versions.yml

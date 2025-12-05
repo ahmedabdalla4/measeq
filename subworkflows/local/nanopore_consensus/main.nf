@@ -161,7 +161,7 @@ workflow NANOPORE_CONSENSUS {
 
         // Merge pools by merging the vcf files for each pool together
         CLAIR3_POOL.out.vcf
-            .map { meta, vcf, pool -> tuple(meta, tuple(vcf, pool)) }
+            .map { meta, vcf, _pool -> tuple(meta, vcf) }
             .groupTuple()
             .set { ch_pooled_vcfs }
 
@@ -172,10 +172,10 @@ workflow NANOPORE_CONSENSUS {
 
         // Prepare Input
         ch_artic_vcf_input = ch_pooled_vcfs
-            .map { meta, vcf_tuples -> tuple(meta.ref_id, meta, vcf_tuples) }
+            .map { meta, vcf -> tuple(meta.ref_id, meta, vcf) }
             .combine(ch_primer_bed.map { meta_ref, bed -> tuple(meta_ref.id, bed) }, by: 0)
-            .multiMap { _ref_id, meta, vcf_tuples, bed ->
-                vcf: tuple(meta, vcf_tuples)
+            .multiMap { _ref_id, meta, vcf, bed ->
+                vcf: tuple(meta, vcf)
                 bed: bed
             }
 
