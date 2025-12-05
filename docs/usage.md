@@ -15,8 +15,8 @@ This pipeline is intended to be run on measles virus (MeV) paired-end Illumina o
   - [Nanopore Required](#nanopore-required)
   - [Expanded Parameter Options](#expanded-parameter-options)
     - [Assigning Your Own Reference](#assigning-your-own-reference)
-    - [Change Preset Reference Files](#specifying-parameters-to-preset-specific-reference-fasta-and-primer-bed-files)
-      - [Preset References Using Params File](#creating-a-params-file-for-preset-references)
+    - [Changing Preset Reference Files](#changing-preset-reference-files)
+      - [Creating a `-params-file` for Setting References and Primers for Predicted Genotypes](#creating-a--params-file-for-setting-references-and-primers-for-predicted-genotypes)
       - [Change Preset References Using the Command Line](#passing-in-paths-through-the-command-line)
     - [Metadata TSV](#metadata-tsv)
     - [All Parameters Table](#all-parameters-table)
@@ -98,15 +98,15 @@ This will launch the pipeline with the `docker` configuration profile. For `nano
 
 Additional options to help run the pipeline to suit your needs
 
-#### Assigning your own reference
+#### Assigning Your Own Reference
 
-By default, the pipeline predicts a sample's genotype using a supplemented measles WHO N450 reference dataset and uses that to set a reference FASTA file to map the sample's reads to. These available preset reference FASTA files correspond to the D8, B3, and A genotypes of the measles virus. If a sample is predicted to be another genotype, then the pipeline defaults to the set `--default_ref` reference FASTA file which matches the D8 reference genome by default.
+By default, the pipeline predicts a sample's genotype using a supplemented measles WHO N450 reference dataset and uses that to set a reference FASTA file to map the sample's reads to. These available preset reference FASTA files correspond to the D8, B3, and A genotypes of the measles virus. If a sample is predicted to be another genotype, then the pipeline defaults to use the set `--default_ref` reference FASTA file which matches the D8 reference genome by default.
 
 You can override this prediction and use your own reference FASTA file by specifying the path to the file using `--reference`. Please note that all samples within that run will now use the FASTA file you have specified.
 
-#### Specifying parameters to preset specific reference FASTA and primer bed files
+#### Changing Preset Reference Files
 
-To change the preset files for each genotype, you may use a params file [as detailed here](#other-settings-and-parameter-files) or pass the modified paths through the command line. Here is a list of parameters that you may change:
+To change the preset files for each genotype, you may use a params file [as detailed here](#other-settings-and-parameter-files) or pass the modified paths through the command line. Parameters that can be changed to set this include:
 
 ```
 B3_ref
@@ -119,22 +119,22 @@ default_ref
 default_bed
 ```
 
-#### Creating a params file for preset references
+#### Creating a `-params-file` for Setting References and Primers for Predicted Genotypes
 
-Create a `reference.yaml` file that includes the following. Note that you don't have to specify all of these, only the ones you would like to change.
+A `reference.yaml` file can be created that includes the following key-value pairs. Note that you don't have to specify all of the genotype reference or primer files, only the ones you would like to change.
 
 ```yaml title="reference.yaml"
-B3_ref: "path/to/fasta/file"
-B3_bed: "path/to/bed/file"
-D8_ref: "path/to/fasta/file"
-D8_bed: "path/to/bed/file"
-A_ref: "path/to/fasta/file"
-A_bed: "path/to/bed/file"
-default_ref: "path/to/fasta/file"
-default_bed: "path/to/bed/file"
+B3_ref: "path/to/REFERENCE.fasta"
+B3_bed: "path/to/PRIMERS.bed"
+D8_ref: "path/to/REFERENCE.fasta"
+D8_bed: "path/to/PRIMERS.bed"
+A_ref: "path/to/REFERENCE.fasta"
+A_bed: "path/to/PRIMERS.bed"
+default_ref: "path/to/REFERENCE.fasta"
+default_bed: "path/to/PRIMERS.bed"
 ```
 
-and run with:
+This can be passed on the command line with the `-params-file` nextflow parameter to be run with a command such as:
 
 ```bash
 nextflow run phac-nml/measeq -profile <PROFILE> --input <SAMPLESHEET.CSV> --platform <ILLUMINA OR NANOPORE> -params-file reference.yaml
@@ -145,7 +145,7 @@ nextflow run phac-nml/measeq -profile <PROFILE> --input <SAMPLESHEET.CSV> --plat
 Instead of creating a params file, you may also change one or multiple paths through the command line. For example, if you wanted to change the default reference FASTA and primer bed files, you can use:
 
 ```bash
-nextflow run phac-nml/measeq -profile <PROFILE> --input <SAMPLESHEET.CSV> --platform <ILLUMINA OR NANOPORE> --default_ref <PATH/TO/FASTA/FILE> --deafult_bed <PATH/TO/BED/FILE>
+nextflow run phac-nml/measeq -profile <PROFILE> --input <SAMPLESHEET.CSV> --platform <ILLUMINA OR NANOPORE> --default_ref <PATH/TO/REFERENCE.fasta> --default_bed <PATH/TO/PRIMERS.bed>
 ```
 
 #### Metadata TSV

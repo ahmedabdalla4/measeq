@@ -20,11 +20,15 @@ The default running inputs have been simplified to not require the `--reference`
 
 ### `Adjusted`
 
-Major changes to the pipeline's workflow to create a channel for every process input that requires matching sample and reference data to ensure each process uses the correct reference files that match the sample's genotype[PR #24](https://github.com/phac-nml/measeq/pull/24)
+- Major changes to the pipeline's workflow to create a channel for every process input that requires matching sample and reference data to ensure each process uses the correct reference files that match the sample's genotype[PR #24](https://github.com/phac-nml/measeq/pull/24)
 
-Various minor tweaks have been made to input/output handling within processes across the pipeline to support the per-sample worklfow [PR #24](https://github.com/phac-nml/measeq/pull/24)
+- Various minor tweaks have been made to input/output handling within processes across the pipeline to support the per-sample worklfow [PR #24](https://github.com/phac-nml/measeq/pull/24)
 
-The report generation process was adjusted to allow for a higher memory threshold to allow more samples to be included within one run [PR #24](https://github.com/phac-nml/measeq/pull/24)
+- The report generation process was adjusted to allow for a higher memory threshold to allow more samples to be included within one run [PR #24](https://github.com/phac-nml/measeq/pull/24)
+
+- Tests have been updated and expanded to support the more complicated channel structure and better assess future updates [PR #24](https://github.com/phac-nml/measeq/pull/24)
+  - CI workflow file reformat done to separate out the full workflow test done with the test profiles to be under the `ci_workflow.yml` file [PR #25](https://github.com/phac-nml/measeq/pull/25)
+    - This is to prevent running the nf-test tests twice as much as necessary
 
 ## [v0.4.3] - 2025-11-07
 

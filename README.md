@@ -151,19 +151,21 @@ Additional or local models can also be used, you just have to provide a path to 
 
 With [MeaSeq v0.5.0](https://github.com/phac-nml/measeq/releases/tag/0.5.0), we have simplified the pipeline's running command by not requiring the `--reference` parameter. Within this update, we have moved to a per-sample reference assignment based on predicting the input sample's most likely genotype. In doing so, we have preset 3 reference files based on three measles virus genotypes (B3, D8, A). If a sample is predicted to be one of these genotypes, then the pipeline processes the sample using the corresponding reference FASTA file. If the sample's most likely genotype doesn't correspond to one of these genotypes, then the pipeline defaults to the set `--default_ref` reference FASTA file which matches the D8 reference genome by default.
 
-#### Specifying your own reference FASTA file
+It is _recommended_ that users evaluate and setup their own reference and primer files when running with predictions as they may differ from what is provided by default (internally used references and primers). This should only need to be done once and then the setup can be used for subsequent runs. [Instructions are available](docs/usage.md#specifying-parameters-to-preset-specific-reference-fasta-and-primer-bed-files) to set this up
 
-With the change mentioned above, you are still able to use your own reference FASTA file for your samples. If you would like to use your own reference to map the samples to, you may use the `--reference <FASTA>` parameter to specify the path to your reference FASTA file. Please note that all samples within that run will now use the FASTA file you have specified.
+#### Specifying Singular Reference
 
-#### Changing the preset reference FASTA and primer bed files
+Users can turn off reference prediction and instead run all samples with their own reference genome using the `--reference <FASTA>` parameter.
 
-If you would like to preset your own reference FASTA and primer bed files, you may pass a params file or use the command line to specify a specific file for the genotype you would like to change. More detailed information about changing the preset files is found within [the usage file linked here](docs/usage.md#specifying-parameters-to-preset-specific-reference-fasta-and-primer-bed-files).
+#### Changing the Preset References and Primer Files
 
-### Amplicon and Primer Files
+Evalutating and adjusting the preset reference genomes and primer bed files is recommended; especially the primers files if running with amplicon data. To make these adjustments, you can pass a `-params-file` or use the command line to specify genotype reference or primer bed files to change. More detailed information about changing the preset files is found within [the usage file](docs/usage.md#changing-preset-reference-files).
 
-_Both_ Illumina and Nanopore support running amplicon data using a primer scheme file. To run amplicon data all you need to do is specify the `--amplicon` parameter within your command to use the appropriate preset primer bed file.
+### Amplicons and Primer Files
 
-If running the pipeline with your own reference using `--reference <FASTA>`, you have to specify your own primer bed file if you would like to run amplicon data. The primer bed file details the location where the primers have been mapped to within the reference genome. To run amplicon data when specifying your own reference, use the `--primer_bed <PRIMER_BED>` parameter. An example primer bed file looks as such:
+_Both_ Illumina and Nanopore support running amplicon data using a primer bed file to trim primer positions with either [`iVar`](https://github.com/andersen-lab/ivar) or [`ARTIC`](https://github.com/artic-network/align_trim). To run amplicon data when running with genotype predictions, specify the `--amplicon` parameter and the primer file associated with the predicted genotype will be used to trim the reads.
+
+If running the pipeline with your own reference using `--reference <FASTA>`, you have to specify your own primer bed file with `--primer_bed <PRIMER_BED>` to run amplicon data. The primer bed file details the location where the primers have been mapped to within the reference genome. An example primer bed file looks as such:
 
 **primer.bed**
 
