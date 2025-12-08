@@ -233,7 +233,7 @@ def main():
 
    # Output to file (APPEND rows across runs; write header only once)
    csv_out = args.output
-   with open(csv_out, "w", newline="") as csvfile:
+   with open(csv_out, "w") as csvfile:
        fieldnames = list(predictions[0].keys())
        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
        writer.writeheader()

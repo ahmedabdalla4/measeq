@@ -12,6 +12,7 @@ include { completionSummary         } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NFCORE_PIPELINE     } from '../../nf-core/utils_nfcore_pipeline'
 include { UTILS_NEXTFLOW_PIPELINE   } from '../../nf-core/utils_nextflow_pipeline'
 include { PREDICT_GENOTYPE          } from '../../../modules/local/predict_genotype/main.nf'
+include { STAGE_FILE_IRIDANEXT      } from '../../../modules/local/custom/stage_file_iridanext/main.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -165,9 +166,11 @@ workflow PIPELINE_INITIALISATION {
             ch_measles_n450_mmi
         )
 
-        // Create predictions.csv file
-        PREDICT_GENOTYPE.out.csv
-            .collectFile(name: 'predictions.csv', storeDir: "${params.outdir}", keepHeader: true, skip: 1)
+        // Create predictions.csv file and save in a way so IRIDA Next can get it
+        STAGE_FILE_IRIDANEXT(
+            PREDICT_GENOTYPE.out.csv
+                .collectFile(name: 'predictions.csv', keepHeader: true, skip: 1, cache: false, sort: true)
+        )
 
         // Modify module input to create samples, reference, and primers channels
         PREDICT_GENOTYPE.out.samplesheet
