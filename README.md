@@ -1,7 +1,7 @@
 # MeaSeq: Measles Sequence Analysis Automation
 
 - [Current Updates](#current-updates)
-  - [2025-12-01](#2025-12-01)
+  - [2025-12-08](#2025-12-08)
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Resource Requirements](#resources-requirements)
@@ -26,7 +26,7 @@
 
 ## Current Updates
 
-### _2025-12-01_ Summary
+### _2025-12-08_ Summary
 
 - Sample references are now set based on the predicted genotype with a default fallback for non currently supported genotypes
 
