@@ -33,10 +33,10 @@ include { ADJUST_FASTA_HEADER       } from '../../../modules/local/artic/subcomm
 workflow ILLUMINA_CONSENSUS {
 
     take:
-    ch_reference           // channel: [ [id], fasta ]
-    ch_reference_fai       // channel: [ fai ]
-    ch_input_fastqs        // channel: [ [id, single_end], fastqs ]
-    ch_primer_bed          // channel: [ bed ]
+    ch_reference    // channel: [ meta_ref, fasta ]
+    ch_fai          // channel: [ meta_ref, fai ]
+    ch_samples      // channel: [ meta[id, single_end, ref_id], fastqs ]
+    ch_primer_bed   // channel: [ meta_ref, bed ]
 
     main:
     ch_versions = Channel.empty()
@@ -45,7 +45,7 @@ workflow ILLUMINA_CONSENSUS {
     // MODULE: Run fastp for read quality filtering
     //
     FASTP(
-        ch_input_fastqs,
+        ch_samples,
         [],
         '',
         '',
@@ -63,23 +63,64 @@ workflow ILLUMINA_CONSENSUS {
 
     //
     // MODULE: Run BWAMEM to map to reference
-    //  Using modules.config too filter reads with view
+    //  Using modules.config to filter reads with view
     //
+
+    // Prepare Input
+    // Link FASTP outputs with INDEX & Join reads to their matching reference by ref_id
+    ch_reads_by_ref = FASTP.out.reads
+        .map { meta, reads -> tuple(meta.ref_id, meta, reads) }
+
+    ch_ref_with_index = ch_reference
+        .map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }
+        .join(
+            BWAMEM2_INDEX.out.index.map { meta_ref, index_dir -> tuple(meta_ref.id, index_dir) }
+        )
+        .map { ref_id, meta_ref, fasta, index_dir ->
+            tuple(ref_id, meta_ref, fasta, index_dir)
+        }
+
+    // Create BWAMEM2 expected input
+    ch_bwa_mem_inputs = ch_reads_by_ref
+        .combine(ch_ref_with_index, by: 0)
+        .multiMap { ref_id, meta, reads, meta_ref, fasta, index_dir ->
+            reads: tuple(meta, reads)
+            index: tuple(meta_ref, index_dir)
+            reference: tuple(meta_ref, fasta)
+            mode : ''
+        }
+
+
+    // Run Module
     BWAMEM2_MEM(
-        FASTP.out.reads,
-        BWAMEM2_INDEX.out.index,
-        ch_reference,
-        ''
+        ch_bwa_mem_inputs.reads,
+        ch_bwa_mem_inputs.index,
+        ch_bwa_mem_inputs.reference,
+        ch_bwa_mem_inputs.mode
     )
     ch_versions = ch_versions.mix(BWAMEM2_MEM.out.versions)
 
     //
     // MODULE: Sort and index output bam file from BWA
     //
+
+    // Prepare Inputs
+    ch_samtools_sort_input = BWAMEM2_MEM.out.bam
+        .map { meta, bam -> tuple(meta.ref_id, meta, bam) }
+        .combine(
+            ch_reference.map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }, by: [0]
+        )
+        .multiMap { _ref_id, meta, bam, meta_ref, fasta ->
+            bam: tuple(meta, bam)
+            reference: tuple(meta_ref, fasta)
+            bai: 'bai'
+        }
+
+    // Run Module
     SAMTOOLS_SORT(
-        BWAMEM2_MEM.out.bam,
-        ch_reference,
-        'bai'
+        ch_samtools_sort_input.bam,
+        ch_samtools_sort_input.reference,
+        ch_samtools_sort_input.bai
     )
     ch_bam_bai = SAMTOOLS_SORT.out.bam.join(SAMTOOLS_SORT.out.bai, by: [0])
     ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions)
@@ -88,11 +129,22 @@ workflow ILLUMINA_CONSENSUS {
     // PROCESS: if we have amplicon data, want to make sure that the primers are not affecting
     //  the output results so trimming them is required
     //
-    if( params.primer_bed ) {
-        // iVar Trim
+    if ( params.amplicon || params.primer_bed ) {
+        //
+        // MODULE: Run IVAR Trim
+        //
+
+        // Prepare Inputs
+        ch_ivar_trim_input = ch_bam_bai
+            .map { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+            .combine(ch_primer_bed.map { meta_ref, bed -> tuple(meta_ref.id, bed) }, by: 0)
+            .map { _ref_id, meta, bam, bai, bed ->
+                tuple(meta, bam, bai, bed)
+            }
+
+        // Run Module
         IVAR_TRIM(
-            ch_bam_bai,
-            ch_primer_bed
+            ch_ivar_trim_input
         )
         ch_bam_bai = IVAR_TRIM.out.bam
         ch_versions = ch_versions.mix(IVAR_TRIM.out.versions)
@@ -101,23 +153,45 @@ workflow ILLUMINA_CONSENSUS {
     //
     // SUBWORKFLOW: Mark duplicates if arg is given
     //
+
+    // Prepare Input
+    ch_bam_bai_by_ref = ch_bam_bai
+        .map { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+
+    // Join reference index file with fasta file
+    ch_ref_with_fai = ch_reference
+        .map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }
+        .join(ch_fai.map { meta_ref, fai -> tuple(meta_ref.id, fai) }, by: [0])
+        .map { ref_id, meta_ref, fasta, fai ->
+                tuple(ref_id, meta_ref, fasta, fai)
+        }
+
+    // Create expected inputs for the modules
+    ch_bam_input = ch_bam_bai_by_ref
+        .combine(ch_ref_with_fai, by: 0)
+        .multiMap { _ref_id, meta, bam, bai, meta_ref, fasta, fai ->
+            bam  : tuple(meta, bam)
+            reference: tuple(meta_ref, fasta)
+            fai: tuple(meta_ref, fai)
+            bam_bai: tuple(meta, bam, bai)
+        }
+
     if( params.remove_duplicates ) {
+        // Run Subworkflow
         BAM_MARKDUPLICATES_PICARD(
-            ch_bam_bai.map{ it -> [ it[0], it[1] ]},
-            ch_reference,
-            ch_reference_fai.map{ [ [:], it ] }
+            ch_bam_input.bam,
+            ch_bam_input.reference,
+            ch_bam_input.fai
         )
         ch_bam_bai = BAM_MARKDUPLICATES_PICARD.out.bam
                         .join(BAM_MARKDUPLICATES_PICARD.out.bai, by: [0])
         ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
     } else {
-        //
-        // SUBWORKFLOW: Get samtools stats
+        // Run subworkflow: Get samtools stats
         //  These are also in the PICARD workflow
-        //
         BAM_STATS_SAMTOOLS(
-            ch_bam_bai,
-            ch_reference
+            ch_bam_input.bam_bai,
+            ch_bam_input.reference
         )
         ch_versions = ch_versions.mix(BAM_STATS_SAMTOOLS.out.versions)
     }
@@ -125,40 +199,66 @@ workflow ILLUMINA_CONSENSUS {
     //
     // MODULE: Run Freebayes to call variants
     //
+
+    // Prepare Input for both FREEBAYES & CUSTOM_MAKE_DEPTH_MASK modules
+    ch_bam_bai_by_ref = ch_bam_bai
+        .map { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+    ch_freebayes_depth_input = ch_bam_bai_by_ref
+        .combine(ch_ref_with_fai, by:0)
+        .multiMap { _ref_id, meta, bam, bai, meta_ref, fasta, fai ->
+            reference: tuple(meta_ref, fasta)
+            bam_bai: tuple(meta, bam, bai)
+        }
+
+    // Run Module
     FREEBAYES(
-        ch_bam_bai,
-        ch_reference
+        ch_freebayes_depth_input.bam_bai,
+        ch_freebayes_depth_input.reference
     )
     ch_versions = ch_versions.mix(FREEBAYES.out.versions)
 
     //
     // MODULE: Process freebayes variant calls with custom python script and bcftools norm
     //
+
+    // Prepare Input
+    ch_process_vcf_input = FREEBAYES.out.vcf
+            .map { meta, vcf -> tuple(meta.ref_id, meta, vcf) }
+            .combine(ch_reference.map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }, by: 0)
+            .multiMap { _ref_id, meta, vcf, meta_ref, fasta ->
+                vcf: tuple(meta, vcf)
+                reference: tuple(meta_ref, fasta)
+            }
+
+    // Run Module
     PROCESS_VCF(
-        FREEBAYES.out.vcf,
-        ch_reference
+        ch_process_vcf_input.vcf,
+        ch_process_vcf_input.reference
     )
     ch_versions = ch_versions.mix(PROCESS_VCF.out.versions)
-
-    // For some reason it did not want to let me join the [] alone to the new channel for the next steps
-    //  So we've done it this way and that works
-    PROCESS_VCF.out.ambiguous_vcf
-        .combine(ch_reference.map{it -> it[1]})
-        .map{ it -> [it[0], it[1], it[2], it[3], []]}
-        .set{ ch_ambiguous_vcf_restructured }
 
     //
     // MODULE: Make a depth mask based on the minimum depth required to call a position
     //
     CUSTOM_MAKE_DEPTH_MASK(
-        ch_bam_bai,
-        ch_reference
+        ch_freebayes_depth_input.bam_bai,
+        ch_freebayes_depth_input.reference
     )
     ch_versions = ch_versions.mix(CUSTOM_MAKE_DEPTH_MASK.out.versions)
 
     //
     // MODULE: Create intermediate fasta file with IUPACs for ambiguous positions from freebayes
     //
+
+    // Prepare Input
+    ch_ambiguous_vcf_restructured = PROCESS_VCF.out.ambiguous_vcf
+            .map {meta, vcf_gz, tbi -> tuple(meta.ref_id, meta, vcf_gz, tbi) }
+            .combine(ch_reference.map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }, by: 0)
+            .map { _ref_id, meta, vcf_gz, tbi, meta_ref, fasta ->
+                tuple(meta, vcf_gz, tbi, fasta, [])
+            }
+
+    // Run Module
     BCFTOOLS_CONSENSUS_AMBIGUOUS(
         ch_ambiguous_vcf_restructured
     )
@@ -177,19 +277,30 @@ workflow ILLUMINA_CONSENSUS {
     //
     // MODULE: Adjust final consensus sequence headers to make downstream processes easier
     //
+
+    // Prepare Input
+    ch_adjust_input = BCFTOOLS_CONSENSUS_FINAL.out.fasta
+        .map { meta, con_fasta -> tuple(meta.ref_id, meta, con_fasta) }
+        .combine(ch_reference.map { meta_ref, ref_fasta -> tuple(meta_ref.id, meta_ref, ref_fasta) }, by: 0)
+        .multiMap { _ref_id, meta, con_fasta, meta_ref, ref_fasta ->
+            consensus: tuple(meta, con_fasta)
+            reference: tuple(meta_ref, ref_fasta)
+        }
+
+    // Run Module
     ADJUST_FASTA_HEADER(
-        BCFTOOLS_CONSENSUS_FINAL.out.fasta,
-        ch_reference,
+        ch_adjust_input.consensus,
+        ch_adjust_input.reference,
         '.consensus',
         ''
     )
     ch_versions = ch_versions.mix(ADJUST_FASTA_HEADER.out.versions)
 
     emit:
-    fastp_json   = FASTP.out.json
-    bam_bai      = ch_bam_bai
-    consensus    = ADJUST_FASTA_HEADER.out.consensus
-    vcf          = PROCESS_VCF.out.total_vcf
-    variants_tsv = PROCESS_VCF.out.variants_tsv
-    versions     = ch_versions
+    fastp_json   = FASTP.out.json                       // channel: [ meta, *.json]
+    bam_bai      = ch_bam_bai                           // channel: [ meta, bam, bai ]
+    consensus    = ADJUST_FASTA_HEADER.out.consensus    // channel: [ meta, fasta ]
+    vcf          = PROCESS_VCF.out.total_vcf            // channel: [ meta, vcf, tbi ]
+    variants_tsv = PROCESS_VCF.out.variants_tsv         // channel: [ meta, *.tsv ]
+    versions     = ch_versions                          // channel: [ path(versions.yml) ]
 }

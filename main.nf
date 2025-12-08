@@ -28,7 +28,9 @@ include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_meas
 workflow PHACNML_MEASEQ {
 
     take:
-    samplesheet // channel: samplesheet read in from --input
+    samplesheet // channel: samplesheet read in from --input // tuple meta[id, single-end, ref_id], fastqs[f1,f2]
+    reference   // channel: reference created from --reference or predicted // tuple meta[ref_id], fasta
+    primer_bed // channel: primer bed file created from --primer_bed or predicted // tuple meta[ref_id], primer_bed : null
 
     main:
 
@@ -36,7 +38,9 @@ workflow PHACNML_MEASEQ {
     // WORKFLOW: Run pipeline
     //
     MEASEQ (
-        samplesheet
+        samplesheet,
+        reference,
+        primer_bed
     )
 
 }
@@ -65,7 +69,9 @@ workflow {
     // WORKFLOW: Run main workflow
     //
     PHACNML_MEASEQ (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.samplesheet,
+        PIPELINE_INITIALISATION.out.reference,
+        PIPELINE_INITIALISATION.out.primer_bed
     )
     //
     // SUBWORKFLOW: Run completion tasks

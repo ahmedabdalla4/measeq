@@ -10,10 +10,10 @@ process GENERATE_REF_INTERMEDIATES {
     tuple val(meta), path(reference)
 
     output:
-    path "${reference}.fai", emit: fai
-    path "refstats.txt", emit: refstats
-    path "genome.bed", emit: genome_bed
-    path "versions.yml", emit: versions
+    tuple val(meta), path("${reference}.fai"),  emit: fai
+    tuple val(meta), path("refstats.txt"),      emit: refstats
+    tuple val(meta), path("genome.bed"),        emit: genome_bed
+    path "versions.yml",                        emit: versions
 
     script:
     """
@@ -49,10 +49,10 @@ process GENERATE_AMPLICON_BED {
     container "quay.io/biocontainers/python:3.10.2"
 
     input:
-    path bed
+    tuple val(meta), path(bed)
 
     output:
-    path "amplicon.bed", emit: bed
+    tuple val(meta), path("amplicon.bed"), emit: bed
     path "versions.yml", emit: versions
 
     script:
@@ -88,10 +88,10 @@ process SPLIT_AMPLICON_REGION {
     container "biocontainers/coreutils:8.31--h14c3975_0"
 
     input:
-    path bed
+    tuple val(meta), path(bed)
 
     output:
-    path "*.bed", emit: bed
+    tuple val(meta), path("*.bed"), emit: bed
 
     script:
     """

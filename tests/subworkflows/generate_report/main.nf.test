@@ -1,0 +1,75 @@
+nextflow_workflow {
+
+    name "Test of Final Report Generation"
+    script "subworkflows/local/generate_report/main.nf"
+    workflow "GENERATE_REPORT"
+    tag "subworkflows"
+    tag "reports"
+
+    test("Final Report Generation") {
+        tag "success"
+        when {
+            workflow {
+                """
+                input[0] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/assets/reference/D8/MH356245.1.reference.fasta")
+                        ]
+                    )
+                input[1] = Channel.of(
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/test_data/MH356245.1.reference.fasta.fai")
+                        ]
+                    )
+                input[2] = Channel.of(
+                        [
+                            [id: "sample1", single_end: true, ref_id: "MH356245.1"],
+                            file("$baseDir/test_data/report_generation/sample1.primertrimmed.rg.sorted.bam"),
+                            file("$baseDir/test_data/report_generation/sample1.primertrimmed.rg.sorted.bam.bai")
+                        ]
+                    )
+                input[3] = Channel.of(
+                        [
+                            [id: "sample1", single_end: true, ref_id: "MH356245.1"],
+                            file("$baseDir/test_data/report_generation/sample1.consensus.tsv")
+                        ]
+                    )
+                input[4] = Channel.of(
+                        [
+                            [id: "sample1", single_end: true, ref_id: "MH356245.1"],
+                            file("$baseDir/test_data/report_generation/sample1_depth.tsv")
+                        ]
+                    )
+                input[5] = Channel.of(
+                        [
+                            file("$baseDir/test_data/report_generation/overall.qc.csv")
+                        ]
+                    )
+                input[6] = Channel.fromPath("$baseDir/test_data/report_generation/versions*.yml")
+                """
+            }
+            params {
+                outdir = "results"
+            }
+        }
+        then {
+            assertAll(
+                { assert workflow.success }
+            )
+
+            // Files exist
+            // Reporting Stats
+            assert path("${launchDir}/results/reporting/positional_n/sample1.per_base_n.tsv").exists()
+            assert path("${launchDir}/results/reporting/positional_quality/sample1.baseq.stats.tsv").exists()
+            assert path("${launchDir}/results/reporting/sample_variation/sample1_variation.csv").exists()
+            assert path("${launchDir}/results/reporting/sample_positional_normalized_depth.csv").exists()
+            assert path("${launchDir}/results/reporting/sample_positional_normalized_depth_stats.csv").exists()
+            // MeaSeq Report
+            assert path("${launchDir}/results/MeaSeq_Report.html").exists()
+            // Software Versions
+            assert path("${launchDir}/results/pipeline_info/measeq_software_mqc_versions.yml").exists()
+        }
+    }
+}

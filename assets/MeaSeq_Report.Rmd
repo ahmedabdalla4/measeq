@@ -16,7 +16,6 @@ params:
   version: ""
   revision: ""
   nf_version: ""
-  genotype: ""
   overall_qc: ""
   name: ""
   email: ""
@@ -90,7 +89,6 @@ suppressPackageStartupMessages(library(shiny))
 suppressPackageStartupMessages(library(shidashi))
 
 # Assign imported parameters
-genotype <- params$genotype
 overall_qc <- params$overall_qc
 name <- params$name
 email <- params$email
@@ -295,6 +293,7 @@ summary_df <- summary_df %>%
   rename(
     "Sample" = sample,
     "Genotype" = genotype,
+    "Reference" = reference,
     "Matched DSId" = matched_dsid,
     "# Input Reads" = num_input_reads,
     "# Aligned Reads" = num_aligned_reads,
@@ -334,7 +333,6 @@ Run Summary
 ```{r create-valueboxes, include=FALSE, message=FALSE, warning=FALSE}
 # Create valueboxes for display
 value_boxes <- list(
-  reference_vbox = valueBox(genotype, "Reference Genotype", icon = "", color = "#343A40"),
   total_samples_vbox = valueBox(total_samples_count, "Total Samples", icon = "", color = "#D1D2D1"),
   passing_samples_vbox = valueBox(passing_samples_count, "Passing Samples", icon = "ion-android-checkmark-circle", color = "#18BC9C"),
   warning_samples_vbox = valueBox(warning_samples_count, "Samples with Warnings", icon = "ion-alert-circled", color = "#ffc773"),
@@ -359,6 +357,7 @@ for (box in value_boxes) {
 metrics_df <- select(summary_df,
   Sample,
   Genotype,
+  Reference,
   `Matched DSId`,
   `# Aligned Reads`,
   `Mean Depth`,

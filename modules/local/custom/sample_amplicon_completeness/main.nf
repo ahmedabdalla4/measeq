@@ -8,8 +8,7 @@ process SAMPLE_AMPLICON_COMPLETENESS {
         'biocontainers/biopython:1.81' }"
 
     input:
-    tuple val(meta), path(consensus)
-    path amplicon_bed
+    tuple val(meta), path(consensus), path(amplicon_bed)
 
     output:
     tuple val(meta), path("*_amplicon_completeness.tsv"), emit: tsv

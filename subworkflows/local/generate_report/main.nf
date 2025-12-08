@@ -23,12 +23,11 @@ include { MAKE_CUSTOM_REPORT      } from '../../../modules/local/custom/custom_r
 workflow GENERATE_REPORT {
 
     take:
-    ch_reference            // channel: [ [id], fasta ]
-    ch_reference_fai        // channel: [ fai ]
-    ch_bam_bai              // channel: [ [id], bam, bai ]
-    ch_variants_tsv         // channel: [ [id], tsv ]
-    ch_genotype             // channel: [ genotype ]
-    ch_depth_tsv            // channel: [ [id], depth_tsv ]
+    ch_reference            // channel: [ meta_ref, fasta ]
+    ch_fai                  // channel: [ meta_ref, fai ]
+    ch_bam_bai              // channel: [ meta, bam, bai ]
+    ch_variants_tsv         // channel: [ meta, tsv ]
+    ch_depth_tsv            // channel: [ meta, depth_tsv ]
     ch_overall_qc           // channel: [ csv ]
     ch_versions             // channel: [ version_ymls ]
 
@@ -39,10 +38,25 @@ workflow GENERATE_REPORT {
     //
     // MODULE: Calculate the N depth in each position
     //
+
+    // Prepare Inputs
+    ch_ref_with_fai = ch_reference
+        .map { meta_ref, fasta -> tuple(meta_ref.id, meta_ref, fasta) }
+        .join(ch_fai.map { meta_ref, fai -> tuple(meta_ref.id, fai) })
+        .map { ref_id, meta_ref, fasta, fai -> tuple(ref_id, meta_ref, fasta, fai) }
+
+    // Combine samples with reference data
+    ch_bam_ref = ch_bam_bai
+        .map  { meta, bam, bai -> tuple(meta.ref_id, meta, bam, bai) }
+        .combine(ch_ref_with_fai, by: 0)
+        .multiMap { _ref_id, meta, bam, bai, meta_ref, fasta, fai ->
+            ndepth_input: tuple(meta, bam, bai, fasta, fai)
+            bam_var_input: tuple(meta, bam, bai, fasta)
+        }
+
+    // Run Module
     POSITIONAL_N_DEPTH(
-        ch_bam_bai,
-        ch_reference,
-        ch_reference_fai
+        ch_bam_ref.ndepth_input
     )
     ch_versions = ch_versions.mix(POSITIONAL_N_DEPTH.out.versions.first())
 
@@ -59,8 +73,7 @@ workflow GENERATE_REPORT {
     // MODULE: Calculate the underlying variation in the BAM file
     //
     CALCULATE_BAM_VARIATION(
-        ch_bam_bai,
-        ch_reference
+        ch_bam_ref.bam_var_input
     )
     ch_versions = ch_versions.mix(CALCULATE_BAM_VARIATION.out.versions.first())
 
@@ -94,7 +107,6 @@ workflow GENERATE_REPORT {
         CALCULATE_BAM_VARIATION.out.csv.collect{ it[1] },
         ch_variants_tsv.collect{ it[1] },
         NORMALIZE_DEPTH_MATRIX.out.full_csv,
-        ch_genotype,
         ch_report_template,
         ch_report_subpages.collect(),
         ch_collated_versions,
@@ -104,5 +116,5 @@ workflow GENERATE_REPORT {
     )
 
     emit:
-    versions = ch_versions
+    versions = ch_versions      // channel: [ path(versions.yml) ]
 }

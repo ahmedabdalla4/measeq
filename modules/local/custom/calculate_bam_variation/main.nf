@@ -10,8 +10,7 @@ process CALCULATE_BAM_VARIATION {
         'biocontainers/artic:1.7.4--pyhdfd78af_0' }"
 
     input:
-    tuple val(meta), path(bam), path(bai)
-    tuple val(meta2), path(reference)
+    tuple val(meta), path(bam), path(bai), path(reference)
 
     output:
     tuple val(meta), path("${meta.id}_variation.csv"), optional: true, emit: csv

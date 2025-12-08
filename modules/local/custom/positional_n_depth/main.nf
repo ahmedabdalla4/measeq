@@ -8,9 +8,7 @@ process POSITIONAL_N_DEPTH {
         'biocontainers/samtools:1.21--h50ea8bc_0' }"
 
     input:
-    tuple val(meta), path(bam), path(bai)
-    tuple val(meta2), path(reference)
-    path(fai)
+    tuple val(meta), path(bam), path(bai), path(reference), path(fai)
 
     output:
     tuple val(meta), path("${meta.id}.per_base_n.tsv"), emit: tsv

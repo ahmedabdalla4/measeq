@@ -37,12 +37,6 @@
             "description": "Options that are required to run the pipeline no matter what",
             "default": "",
             "properties": {
-                "reference": {
-                    "type": "string",
-                    "description": "Path to reference sequence to map measles fastqs to",
-                    "format": "file-path",
-                    "fa_icon": "far fa-file-alt"
-                },
                 "platform": {
                     "type": "string",
                     "description": "Sequencing platform used. Options are: 'illumina' or 'nanopore'",
@@ -50,7 +44,7 @@
                     "fa_icon": "fas fa-vector-square"
                 }
             },
-            "required": ["reference", "platform"],
+            "required": ["platform"],
             "fa_icon": "fas fa-check"
         },
         "amplicon_options": {
@@ -64,6 +58,10 @@
                     "description": "Path to amplicon primer bed file",
                     "format": "file-path",
                     "fa_icon": "far fa-file-alt"
+                },
+                "amplicon": {
+                    "type": "boolean",
+                    "description": "Run with amplicon data"
                 }
             },
             "fa_icon": "fas fa-vials"
@@ -154,6 +152,12 @@
                     "default": 8,
                     "minimum": 0,
                     "description": "Minimum variant quality to pass clair3 filters"
+                },
+                "ont_min_read_length": {
+                    "type": "integer",
+                    "default": 200,
+                    "minimum": 0,
+                    "description": "Minimum read length for input ONT reads"
                 }
             }
         },
@@ -163,6 +167,12 @@
             "description": "Options related to the analysis of data or adding in data",
             "default": "",
             "properties": {
+                "reference": {
+                    "type": "string",
+                    "description": "Path to reference sequence to map measles fastqs to",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
                 "metadata": {
                     "type": "string",
                     "pattern": "^\\S+\\.tsv$",
@@ -275,6 +285,62 @@
                     "hidden": true
                 }
             }
+        },
+        "reference_options": {
+            "title": "Reference options",
+            "type": "object",
+            "description": "Reference options when no specific reference is specified in the command",
+            "default": "",
+            "properties": {
+                "B3_ref": {
+                    "type": "string",
+                    "description": "Path to B3 reference fasta",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
+                "D8_ref": {
+                    "type": "string",
+                    "description": "Path to D8 reference fasta",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
+                "A_ref": {
+                    "type": "string",
+                    "description": "Path to A reference fasta",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
+                "default_ref": {
+                    "type": "string",
+                    "description": "Path to D8 reference fasta",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
+                "B3_bed": {
+                    "type": "string",
+                    "description": "Path to B3 primers bed file",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
+                "D8_bed": {
+                    "type": "string",
+                    "description": "Path to D8 primers bed file",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
+                "A_bed": {
+                    "type": "string",
+                    "description": "Path to A primers bed file",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                },
+                "default_bed": {
+                    "type": "string",
+                    "description": "Path to D8 primers bed file",
+                    "format": "file-path",
+                    "fa_icon": "far fa-file-alt"
+                }
+            }
         }
     },
     "allOf": [
@@ -301,6 +367,9 @@
         },
         {
             "$ref": "#/definitions/generic_options"
+        },
+        {
+            "$ref": "#/definitions/reference_options"
         }
     ]
 }

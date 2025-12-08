@@ -40,6 +40,7 @@ valueBox(
 # Select wanted cols to display
 sample_df <- select(sample_df,
   Genotype,
+  Reference,
   `Matched DSId`,
   `# Aligned Reads`,
   `Mean Depth`,

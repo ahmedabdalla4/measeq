@@ -5,24 +5,28 @@ nextflow_workflow {
     workflow "ILLUMINA_CONSENSUS"
     tag "subworkflows"
     tag "consensus"
+    tag "illumina"
 
-    test("Illumina Consensus Workflow with Optional") {
+    test("Illumina Consensus Workflow with Optional Remove Duplicates Param") {
         tag "success"
         when {
             workflow {
                 """
                 input[0] = Channel.of(
                         [
-                            [id: "reference"],
-                            file("$baseDir/test_data/MH356245.1.reference.fasta")
+                            [id: "MH356245.1"],
+                            file("$baseDir/assets/reference/D8/MH356245.1.reference.fasta")
                         ]
                     )
                 input[1] = Channel.of(
-                        file("$baseDir/test_data/MH356245.1.reference.fasta.fai")
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/test_data/MH356245.1.reference.fasta.fai")
+                        ]
                     )
                 input[2] = Channel.of(
                         [
-                            [id: "SRR7517490", single_end: false],
+                            [id: "SRR7517490", single_end: false, ref_id: "MH356245.1"],
                             [
                                 file("$baseDir/test_data/illumina_fastqs/SRR7517490_R1.fastq.gz"),
                                 file("$baseDir/test_data/illumina_fastqs/SRR7517490_R2.fastq.gz")
@@ -30,14 +34,17 @@ nextflow_workflow {
                         ]
                     )
                 input[3] = Channel.of(
-                        file("$baseDir/test_data/primer.bed")
+                        [
+                            [id: "MH356245.1"],
+                            file("$baseDir/assets/reference/D8/primers.bed")
+                        ]
                     )
                 """
             }
             params {
                 outdir = "results"
                 platform = "illumina"
-                primer_bed = "$baseDir/test_data/primer.bed"
+                primer_bed = "$baseDir/assets/reference/D8/primers.bed"
                 remove_duplicates = true
             }
         }
@@ -61,8 +68,8 @@ nextflow_workflow {
             assert path("${launchDir}/results/vcf/processed_vcf/SRR7517490.processed.norm.vcf.gz").exists()
 
             // Consensus md5 --> If it matches, all variants were the same so intermediate files SHOULD be ok/the same
-            //  Adjustment for 0.4.3 added a few Ns to it when removing the supplementary reads
-            assert path("${launchDir}/results/consensus/SRR7517490.consensus.fasta").md5 == "eefa42ab991ae2ca9b43d48c0cc6c649"
+            //  Adjustment for 0.5.0 to use different primers so slight changes
+            assert path("${launchDir}/results/consensus/SRR7517490.consensus.fasta").md5 == "0010cc054285afabcc6c5acd5a8c573e"
         }
     }
 }
