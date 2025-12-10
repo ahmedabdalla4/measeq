@@ -1,7 +1,7 @@
 # MeaSeq: Measles Sequence Analysis Automation
 
 - [Current Updates](#current-updates)
-  - [2025-12-08](#2025-12-08)
+  - [2025-12-09](#2025-12-09)
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Resource Requirements](#resources-requirements)
@@ -208,7 +208,8 @@ If this parameter is not given, the DSIds will still be generated as hashes to g
 
 ### Contact Information
 
-Users have the option of including their contact information on the final report of the pipeline to easily allow for the sharing of the report. Information for how to set up and add contact information [is provided in the usage document]().
+Users have the option of including their contact information on the final report of the pipeline to easily allow for the sharing of the report. Information for how to set up and add contact information [is provided in the usage document](./docs/usage.md#contact-information).
+
 ### More Run Options
 
 For more detailed running options including adding metadata, adjusting parameters, adding in DSID matches, and more, please refer to [the usage docs](docs/usage.md).
