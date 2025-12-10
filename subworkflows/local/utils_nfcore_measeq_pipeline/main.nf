@@ -173,14 +173,25 @@ workflow PIPELINE_INITIALISATION {
         )
 
         // Modify module input to create samples, reference, and primers channels
-        PREDICT_GENOTYPE.out.samplesheet
+        ch_pred = PREDICT_GENOTYPE.out.samplesheet
             .map { meta, fastqs, genotype ->
-                def fasta = file(params."${genotype}_ref", type: 'file', checkIfExists: true)
+                def ref_path = params."${genotype}_ref" ?: params.default_ref
+                def fasta = file(ref_path, type: 'file', checkIfExists: true)
                 def ref_id = fastaHeaderId(fasta)
-                def primer_bed = file(params."${genotype}_bed", type: 'file', checkIfExists: true)
+                def primer_bed
+                if ( !params.amplicon ) {
+                    primer_bed = "not_needed"
+                } else if ( params."${genotype}_ref" && params.amplicon ){
+                    if ( params."${genotype}_bed" ) {
+                        primer_bed = file(params."${genotype}_bed", type: 'file', checkIfExists: true)
+                    } else {
+                        error "You have specified --amplicon but the ${genotype} predicted genotype doesn't have a valid primer bed file. Provide --${genotype}_bed or remove --amplicon."
+                    }
+                } else if ( ref_path == params.default_ref && params.amplicon ) {
+                    primer_bed = file(params.default_bed, type: 'file', checkIfExists: true)
+                }
                 tuple(meta + [ ref_id: ref_id ], fastqs, fasta, primer_bed)
             }
-            .set { ch_pred }
 
         // Create samples channel
         ch_samples = ch_pred.map { meta, fastqs, _fasta, _primer_bed ->

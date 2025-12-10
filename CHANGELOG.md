@@ -3,6 +3,12 @@
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v0.5.1] - 2025-12-09
+
+Re-added the contact section in the final report output.
+
+Added support for the pipeline to allow all measles genotypes as long as the user specifies the appropriate FASTA file for the genotype
+
 ## [v0.5.0] - 2025-12-08
 
 The pipeline has been reorganized to run each sample with it's own reference to allow for the prediction of each sample's genotype and its mapping to its appropriate reference.
@@ -207,6 +213,7 @@ Small addition of Picard MarkDuplicates workflow along with some new tests
 
 - MeaSeq pipeline created and initial code added
 
+[v0.5.1]: https://github.com/phac-nml/measeq/releases/tag/0.5.1
 [v0.5.0]: https://github.com/phac-nml/measeq/releases/tag/0.5.0
 [v0.4.3]: https://github.com/phac-nml/measeq/releases/tag/0.4.3
 [v0.4.2]: https://github.com/phac-nml/measeq/releases/tag/0.4.2

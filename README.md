@@ -12,6 +12,7 @@
   - [Reference Assignment](#reference-assignment)
   - [Amplicon and Primer Files](#amplicon-and-primer-files)
   - [DSIds](#dsids)
+  - [Contact Information](#contact-information)
   - [More Run Options](#more-run-options)
   - [Testing](#testing)
 - [Outputs](#outputs)
@@ -205,6 +206,9 @@ GTCAGTTCCACAGTGGCATCTGAACTCG
 
 If this parameter is not given, the DSIds will still be generated as hashes to group up samples in the dsid.tsv and in the final report.
 
+### Contact Information
+
+Users have the option of including their contact information on the final report of the pipeline to easily allow for the sharing of the report. Information for how to set up and add contact information [is provided in the usage document]().
 ### More Run Options
 
 For more detailed running options including adding metadata, adjusting parameters, adding in DSID matches, and more, please refer to [the usage docs](docs/usage.md).
